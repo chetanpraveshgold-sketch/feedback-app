@@ -184,6 +184,39 @@ const translations = {
 
 type TranslationType = typeof translations.en;
 
+const playCelebrationChime = () => {
+  if (typeof window === "undefined") return;
+  try {
+    const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    
+    const now = ctx.currentTime;
+    // Luxury ascending chime frequencies (C5, E5, G5, C6)
+    const notes = [523.25, 659.25, 783.99, 1046.50];
+    
+    notes.forEach((freq, index) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, now + index * 0.07);
+      
+      gain.gain.setValueAtTime(0.001, now + index * 0.07);
+      gain.gain.exponentialRampToValueAtTime(0.12, now + index * 0.07 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + index * 0.07 + 0.45);
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc.start(now + index * 0.07);
+      osc.stop(now + index * 0.07 + 0.5);
+    });
+  } catch {
+    // Ignore audio context errors gracefully
+  }
+};
+
 function FeedbackFormContent() {
   const params = useParams();
   const code = (params?.code as string) || "k9r4";
@@ -544,6 +577,9 @@ function FeedbackFormContent() {
                     key={star}
                     type="button"
                     onClick={() => {
+                      if (star === 4 || star === 5) {
+                        playCelebrationChime();
+                      }
                       setRating(star);
                       setClickedStar(star);
                       setSelectedReasons([]);
@@ -774,6 +810,12 @@ export default function FeedbackPage() {
 // Success Template with celebration confetti particles and auto-drawing checkmarks
 function SuccessView({ t, rating }: { t: TranslationType; rating: number }) {
   const showConfetti = rating === 4 || rating === 5;
+
+  useEffect(() => {
+    if (rating === 4 || rating === 5) {
+      playCelebrationChime();
+    }
+  }, [rating]);
 
   // Generate random confetti particle styles
   const particles = Array.from({ length: 25 }).map((_, i) => ({
