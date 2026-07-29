@@ -310,8 +310,11 @@ function FeedbackFormContent() {
       newErrors.contactRequested = t.required;
     } else if (contactRequested === true) {
       const cleanMobile = mobileNumber.trim();
+      const mobileRegex = /^[6-9]\d{9}$/;
       if (!cleanMobile) {
         newErrors.mobileNumber = t.required;
+      } else if (!mobileRegex.test(cleanMobile)) {
+        newErrors.mobileNumber = t.mobile_error;
       }
     }
 
@@ -704,9 +707,11 @@ function FeedbackFormContent() {
                   <input
                     type="tel"
                     inputMode="numeric"
+                    maxLength={10}
                     value={mobileNumber}
                     onChange={(e) => {
-                      setMobileNumber(e.target.value);
+                      const val = e.target.value.replace(/\D/g, "").slice(0, 10);
+                      setMobileNumber(val);
                       setErrors((prev) => ({ ...prev, mobileNumber: "" }));
                     }}
                     placeholder={t.mobile_placeholder}
