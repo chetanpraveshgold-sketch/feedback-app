@@ -188,6 +188,13 @@ function FeedbackFormContent() {
   const params = useParams();
   const code = (params?.code as string) || "k9r4";
 
+  const triggerHaptic = (type: "light" | "medium" | "heavy" = "light") => {
+    if (typeof window !== "undefined" && typeof navigator !== "undefined" && navigator.vibrate) {
+      const pattern = type === "light" ? 10 : type === "medium" ? 20 : 35;
+      navigator.vibrate(pattern);
+    }
+  };
+
   // Language management
   const [lang, setLang] = useState<"en" | "hi" | "mr">("en");
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
@@ -455,10 +462,10 @@ function FeedbackFormContent() {
         }
       `}</style>
 
-      <div className="w-full max-w-[550px] bg-white border border-[#E6DED3] rounded-2xl shadow-[0_4px_24px_rgba(66,17,17,0.03)] overflow-hidden flex flex-col justify-between animate-slide-up">
+      <div className="w-full max-w-[550px] bg-white border border-[#E6DED3] rounded-2xl shadow-[0_12px_40px_rgba(66,17,17,0.04)] flex flex-col justify-between animate-slide-up relative">
         
         {/* Top Header */}
-        <header className="bg-[#421111] px-4 sm:px-6 py-3.5 border-b border-[#AE8448]/30 relative flex justify-center items-center rounded-t-2xl">
+        <header className="bg-[#421111] px-4 sm:px-6 py-4 border-b border-[#AE8448]/30 relative flex justify-center items-center rounded-t-2xl z-20">
           <Image
             src="/PGLOGO.png"
             alt="Pravesh Gold"
@@ -541,6 +548,8 @@ function FeedbackFormContent() {
                       setErrors((prev) => ({ ...prev, rating: "" }));
                       setTimeout(() => setClickedStar(null), 350);
                     }}
+                    onMouseDown={() => triggerHaptic("medium")}
+                    onTouchStart={() => triggerHaptic("medium")}
                     className={`focus:outline-none transition-transform duration-100 active:scale-90 ${clickedStar === star ? "star-bounce" : ""}`}
                   >
                     <svg
@@ -587,6 +596,8 @@ function FeedbackFormContent() {
                           key={opt.key}
                           type="button"
                           onClick={() => handleReasonToggle(opt.key)}
+                          onMouseDown={() => triggerHaptic("light")}
+                          onTouchStart={() => triggerHaptic("light")}
                           className={`flex items-center space-x-3.5 w-full min-h-[46px] px-4 border rounded-xl text-sm text-left transition-all duration-200 card-hover ${
                             isChecked
                               ? "border-[#AE8448] bg-[#FDFBF7] font-semibold text-gray-900 shadow-sm shadow-[#AE8448]/5"
@@ -627,21 +638,21 @@ function FeedbackFormContent() {
             </div>
 
             {/* Section 2: Comment Field */}
-            <div className="p-6 border-b border-[#FAF9F7] space-y-2">
-              <label className="block text-xs font-bold text-gray-700 uppercase tracking-widest">
+            <div className="p-6 border-b border-[#FAF9F7] space-y-2.5 bg-[#FAF9F6]/20">
+              <label className="block text-xs font-bold text-[#AE8448] uppercase tracking-wider">
                 {t.comment_label}
               </label>
               <textarea
                 value={experienceComment}
                 onChange={(e) => setExperienceComment(e.target.value)}
                 placeholder={t.comment_placeholder}
-                className="w-full min-h-[90px] p-3 border border-[#D9CFC1] rounded-xl text-base bg-[#FAF9F7] focus:outline-none focus:border-[#421111] transition-all text-gray-800 font-medium"
+                className="w-full min-h-[95px] p-3.5 border border-[#D9CFC1] rounded-xl text-base bg-[#FAF9F7] focus:outline-none focus:border-[#C8A568] transition-all text-gray-800 font-medium placeholder:text-gray-400"
               />
             </div>
 
             {/* Section 3: Contact Yes/No & Optional Mobile input */}
             <div ref={contactRef} className="p-6 border-b border-[#E6DED3]/60 bg-[#FAF9F6] space-y-4.5">
-              <label className="block text-xs font-bold text-gray-800 uppercase tracking-widest">
+              <label className="block text-xs font-bold text-[#AE8448] uppercase tracking-wider">
                 {t.contact_ask} <span className="text-[#B64F45]">*</span>
               </label>
 
@@ -652,10 +663,12 @@ function FeedbackFormContent() {
                     setContactRequested(true);
                     setErrors((prev) => ({ ...prev, contactRequested: "" }));
                   }}
-                  className={`flex-1 min-h-[44px] border rounded-xl text-xs font-bold transition-all duration-200 card-hover ${
+                  onMouseDown={() => triggerHaptic("light")}
+                  onTouchStart={() => triggerHaptic("light")}
+                  className={`flex-1 min-h-[46px] px-4 border rounded-xl text-sm font-semibold transition-all duration-200 card-hover ${
                     contactRequested === true
-                      ? "border-maroon bg-[#FFF8E8] text-gray-900 shadow-sm"
-                      : "border-[#E6DED3] bg-white text-gray-600 hover:border-[#AE8448]/50"
+                      ? "border-[#AE8448] bg-[#FDFBF7] text-gray-900 shadow-sm shadow-[#AE8448]/5"
+                      : "border-[#E6DED3] bg-[#FAF9F7]/40 text-gray-700 hover:border-[#C8A568] hover:bg-[#FAF6F0]"
                   }`}
                 >
                   {t.yes}
@@ -667,10 +680,12 @@ function FeedbackFormContent() {
                     setMobileNumber("");
                     setErrors((prev) => ({ ...prev, contactRequested: "", mobileNumber: "" }));
                   }}
-                  className={`flex-1 min-h-[44px] border rounded-xl text-xs font-bold transition-all duration-200 card-hover ${
+                  onMouseDown={() => triggerHaptic("light")}
+                  onTouchStart={() => triggerHaptic("light")}
+                  className={`flex-1 min-h-[46px] px-4 border rounded-xl text-sm font-semibold transition-all duration-200 card-hover ${
                     contactRequested === false
-                      ? "border-maroon bg-[#FFF8E8] text-gray-900 shadow-sm"
-                      : "border-[#E6DED3] bg-white text-gray-600 hover:border-[#AE8448]/50"
+                      ? "border-[#AE8448] bg-[#FDFBF7] text-gray-900 shadow-sm shadow-[#AE8448]/5"
+                      : "border-[#E6DED3] bg-[#FAF9F7]/40 text-gray-700 hover:border-[#C8A568] hover:bg-[#FAF6F0]"
                   }`}
                 >
                   {t.no}
@@ -707,11 +722,13 @@ function FeedbackFormContent() {
             </div>
 
             {/* Submission button */}
-            <div className="p-6 bg-white space-y-4">
+            <div className="p-6 bg-white space-y-4 rounded-b-2xl">
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full min-h-[50px] bg-[#421111] hover:bg-[#300B0B] text-white rounded-xl text-xs font-bold tracking-wide uppercase transition-all duration-200 focus:outline-none flex items-center justify-center space-x-2 disabled:opacity-75 disabled:cursor-not-allowed shadow-sm active:scale-[0.99]"
+                onMouseDown={() => triggerHaptic("heavy")}
+                onTouchStart={() => triggerHaptic("heavy")}
+                className="w-full min-h-[50px] bg-[#421111] hover:bg-[#300B0B] text-white hover:text-[#E7D2A5] border border-[#AE8448]/30 rounded-xl text-sm font-semibold tracking-wide uppercase transition-all duration-200 focus:outline-none flex items-center justify-center space-x-2 disabled:opacity-75 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(66,17,17,0.15)] active:scale-[0.99]"
               >
                 {isSubmitting ? (
                   <>
