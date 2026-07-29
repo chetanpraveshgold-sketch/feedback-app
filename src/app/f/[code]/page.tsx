@@ -19,7 +19,8 @@ const translations = {
     other_placeholder: "Enter details...",
     comment_label: "Tell us more about your experience (Optional)",
     comment_placeholder: "Write your feedback here...",
-    contact_ask: "Feel free to share your mobile number if you want us to call you.",
+    contact_ask: "Would you like us to contact you to help improve your experience?",
+    comment_ask_title: "Would you like to tell us more about your experience?",
     yes: "Yes",
     no: "No",
     mobile_label: "Mobile Number",
@@ -85,7 +86,8 @@ const translations = {
     other_placeholder: "यहाँ लिखें...",
     comment_label: "अगर आप कुछ और बताना चाहें (ऐच्छिक)",
     comment_placeholder: "अपनी बात यहाँ लिखें...",
-    contact_ask: "अगर आप चाहते हैं कि हमारी टीम आपसे बात करे, तो अपना मोबाइल नंबर लिख दें।",
+    contact_ask: "क्या आप चाहते हैं कि बेहतर अनुभव के लिए हम आपसे संपर्क करें?",
+    comment_ask_title: "क्या आप अपने अनुभव के बारे में हमें कुछ और बताना चाहेंगे?",
     yes: "हाँ",
     no: "नहीं",
     mobile_label: "मोबाइल नंबर",
@@ -151,7 +153,8 @@ const translations = {
     other_placeholder: "इथे लिहा...",
     comment_label: "अजून काही सांगायचे असल्यास (ऐच्छिक)",
     comment_placeholder: "तुमची प्रतिक्रिया इथे लिहा...",
-    contact_ask: "आमच्या टीमने तुमच्याशी बोलावे असे वाटत असल्यास, आपला मोबाईल नंबर नक्की लिहा.",
+    contact_ask: "उत्तम अनुभवासाठी आम्ही तुमच्याशी संपर्क साधावा असे तुम्हाला वाटते का?",
+    comment_ask_title: "तुम्हाला तुमच्या अनुभवाबद्दल अजून काही सांगायला आवडेल का?",
     yes: "हो",
     no: "नाही",
     mobile_label: "मोबाईल नंबर",
@@ -293,6 +296,10 @@ function FeedbackFormContent() {
   const [experienceComment, setExperienceComment] = useState("");
   const [contactRequested, setContactRequested] = useState<boolean | null>(null);
   const [mobileNumber, setMobileNumber] = useState("");
+  // Modal comment states
+  const [showCommentModal, setShowCommentModal] = useState(false);
+  const [wantsToComment, setWantsToComment] = useState(false);
+  const [tempComment, setTempComment] = useState("");
 
   // System States
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -380,7 +387,7 @@ function FeedbackFormContent() {
       newErrors.rating = t.required;
     }
 
-    if (rating !== null && rating <= 6) {
+    if (rating !== null) {
       if (contactRequested === null) {
         newErrors.contactRequested = t.required;
       } else if (contactRequested === true) {
@@ -401,7 +408,9 @@ function FeedbackFormContent() {
         const errKeys = Object.keys(newErrors);
         let targetRef = q1Ref;
         if (errKeys.includes("rating")) targetRef = q1Ref;
-        else if (errKeys.includes("contactRequested") || errKeys.includes("mobileNumber")) targetRef = contactRef;
+        else if (errKeys.includes("contactRequested") || errKeys.includes("mobileNumber")) {
+          if (contactRef && contactRef.current) targetRef = contactRef;
+        }
 
         if (targetRef && targetRef.current) {
           targetRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -413,9 +422,14 @@ function FeedbackFormContent() {
     return true;
   };
 
-  const submitFeedback = async () => {
+  const submitFeedback = async (commentOverride?: string) => {
     setIsSubmitting(true);
     setNetworkErrorOccurred(false);
+
+    const finalComment = typeof commentOverride === "string" ? commentOverride : experienceComment;
+    if (typeof commentOverride === "string") {
+      setExperienceComment(commentOverride);
+    }
 
     // Convert keys to active translations strings for storage
     const formattedReasons = selectedReasons.map((key) => {
@@ -428,9 +442,9 @@ function FeedbackFormContent() {
       rating_label: rating !== null ? t.labels[rating as keyof typeof t.labels] || "" : "",
       selected_reasons: formattedReasons,
       other_reason: selectedReasons.includes("other") ? otherReason.trim() : "",
-      experience_comment: experienceComment.trim(),
-      contact_requested: rating !== null && rating <= 6 ? !!contactRequested : false,
-      mobile_number: rating !== null && rating <= 6 && contactRequested ? mobileNumber.trim() : "",
+      experience_comment: finalComment.trim(),
+      contact_requested: !!contactRequested,
+      mobile_number: contactRequested ? mobileNumber.trim() : "",
       language: lang
     };
 
@@ -447,6 +461,7 @@ function FeedbackFormContent() {
       if (response.ok && res.status === "success") {
         setRefId(res.referenceId);
         setIsSuccess(true);
+        setShowCommentModal(false);
       } else {
         setNetworkErrorOccurred(true);
       }
@@ -462,10 +477,12 @@ function FeedbackFormContent() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
-    submitFeedback();
+    setShowCommentModal(true);
+    setWantsToComment(false);
+    setTempComment("");
   };
 
-  if (networkErrorOccurred) {
+    if (networkErrorOccurred) {
     return <NetworkErrorView t={t} onRetry={submitFeedback} onReturn={() => setNetworkErrorOccurred(false)} />;
   }
 
@@ -614,76 +631,116 @@ function FeedbackFormContent() {
                 {t.rating_title} <span className="text-[#B64F45]">*</span>
               </label>
 
-              {/* Responsive NPS grid/flex container - strictly non-scrollable and fluid */}
-              <div className="flex flex-row justify-between items-center w-full gap-0.5 min-[360px]:gap-1 min-[400px]:gap-1.5 sm:gap-2.5 max-w-md mx-auto py-3">
-                {Array.from({ length: 11 }).map((_, score) => {
-                  const isSelected = rating === score;
-                  let colorClass = "";
-                  let shadowClass = "";
-                  let FaceIcon = null;
+              {/* Responsive NPS split container - Row 1 (1-6) & Row 2 (7-10) */}
+              <div className="space-y-5 max-w-md mx-auto py-3 px-1">
+                {/* Row 1: Scores 1 to 6 */}
+                <div className="flex flex-row justify-between items-center w-full gap-1 min-[360px]:gap-1.5 sm:gap-2.5">
+                  {[1, 2, 3, 4, 5, 6].map((score) => {
+                    const isSelected = rating === score;
+                    let colorClass = "";
+                    let shadowClass = "";
+                    let FaceIcon = null;
 
-                  const defaultShadowClass = "shadow-[inset_-1.5px_-1.5px_3.5px_rgba(0,0,0,0.18),inset_1.5px_1.5px_3.5px_rgba(255,255,255,0.4),0_3px_8px_rgba(0,0,0,0.08)]";
+                    const defaultShadowClass = "shadow-[inset_-1.5px_-1.5px_3.5px_rgba(0,0,0,0.18),inset_1.5px_1.5px_3.5px_rgba(255,255,255,0.4),0_3px_8px_rgba(0,0,0,0.08)]";
 
-                  // Detractors (0-6): Deep Orange/Red 3D gradient
-                  if (score <= 6) {
+                    // Detractors (1-6): Deep Orange/Red 3D gradient
                     colorClass = "bg-gradient-to-br from-[#FF8F6B] via-[#E64A19] to-[#C62828] text-[#1E0800] border-[#B71C1C]/25";
                     shadowClass = "shadow-[inset_-2px_-2px_5px_rgba(0,0,0,0.25),inset_2px_2px_5px_rgba(255,255,255,0.5),0_8px_20px_rgba(230,74,25,0.52)] border-[#E64A19]";
                     FaceIcon = FrownFace;
-                  }
-                  // Passives (7-8): Rich Yellow/Amber 3D gradient
-                  else if (score <= 8) {
-                    colorClass = "bg-gradient-to-br from-[#FFD54F] via-[#FFA000] to-[#E65100] text-[#1E1100] border-[#E65100]/25";
-                    shadowClass = "shadow-[inset_-2px_-2px_5px_rgba(0,0,0,0.25),inset_2px_2px_5px_rgba(255,255,255,0.5),0_8px_20px_rgba(255,160,0,0.52)] border-[#FFA000]";
-                    FaceIcon = NeutralFace;
-                  }
-                  // Promoters (9-10): Rich Green 3D gradient
-                  else {
-                    colorClass = "bg-gradient-to-br from-[#81C784] via-[#388E3C] to-[#1B5E20] text-[#0A250D] border-[#1B5E20]/25";
-                    shadowClass = "shadow-[inset_-2px_-2px_5px_rgba(0,0,0,0.25),inset_2px_2px_5px_rgba(255,255,255,0.5),0_8px_20px_rgba(56,142,60,0.62)] border-[#388E3C]";
-                    FaceIcon = SmileFace;
-                  }
 
-                  return (
-                    <button
-                      key={score}
-                      type="button"
-                      onClick={() => {
-                        if (score === 9 || score === 10) {
-                          playCelebrationChime();
-                        }
-                        setRating(score);
-                        setSelectedReasons([]);
-                        setOtherReason("");
-                        setErrors((prev) => ({ ...prev, rating: "" }));
-                      }}
-                      onMouseDown={() => triggerHaptic("medium")}
-                      onTouchStart={() => triggerHaptic("medium")}
-                      className={`flex flex-col items-center flex-1 min-w-0 focus:outline-none transition-all duration-200 ${
-                        isSelected ? "scale-110 z-10" : "opacity-65 hover:opacity-90"
-                      }`}
-                    >
-                      {/* Icon Circle */}
-                      <div className={`w-6.5 h-6.5 min-[360px]:w-7.5 min-[360px]:h-7.5 min-[400px]:w-8.5 min-[400px]:h-8.5 sm:w-10 sm:h-10 rounded-full flex items-center justify-center border transition-all ${colorClass} ${
-                        isSelected ? shadowClass + " border-2 scale-105" : defaultShadowClass + " border-transparent"
-                      }`}>
-                        {FaceIcon}
-                      </div>
-                      
-                      {/* Number Label */}
-                      <span className={`text-[10px] sm:text-xs mt-1.5 font-bold transition-all ${
-                        isSelected ? "text-gray-955 scale-110 font-extrabold" : "text-gray-600 font-semibold"
-                      }`}>
-                        {score}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
+                    return (
+                      <button
+                        key={score}
+                        type="button"
+                        onClick={() => {
+                          setRating(score);
+                          setSelectedReasons([]);
+                          setOtherReason("");
+                          setErrors((prev) => ({ ...prev, rating: "" }));
+                        }}
+                        onMouseDown={() => triggerHaptic("medium")}
+                        onTouchStart={() => triggerHaptic("medium")}
+                        className={`flex flex-col items-center flex-1 min-w-0 focus:outline-none transition-all duration-200 ${
+                          isSelected ? "scale-110 z-10" : "opacity-65 hover:opacity-90"
+                        }`}
+                      >
+                        {/* Icon Circle */}
+                        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center border transition-all ${colorClass} ${
+                          isSelected ? shadowClass + " border-2 scale-105" : defaultShadowClass + " border-transparent"
+                        }`}>
+                          {FaceIcon}
+                        </div>
+                        
+                        {/* Number Label */}
+                        <span className={`text-[10px] sm:text-xs mt-1.5 font-bold transition-all ${
+                          isSelected ? "text-gray-955 scale-110 font-extrabold" : "text-gray-600 font-semibold"
+                        }`}>
+                          {score}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
 
-              {/* Min/Max helper labels */}
-              <div className="flex justify-between text-[10px] sm:text-xs font-semibold text-gray-400 max-w-md mx-auto px-2">
-                <span>{t.nps_min_label} (0)</span>
-                <span>{t.nps_max_label} (10)</span>
+                {/* Row 2: Scores 7 to 10 */}
+                <div className="flex flex-row justify-center items-center gap-4.5 sm:gap-6 w-full max-w-[280px] sm:max-w-[340px] mx-auto">
+                  {[7, 8, 9, 10].map((score) => {
+                    const isSelected = rating === score;
+                    let colorClass = "";
+                    let shadowClass = "";
+                    let FaceIcon = null;
+
+                    const defaultShadowClass = "shadow-[inset_-1.5px_-1.5px_3.5px_rgba(0,0,0,0.18),inset_1.5px_1.5px_3.5px_rgba(255,255,255,0.4),0_3px_8px_rgba(0,0,0,0.08)]";
+
+                    // Passives (7-8): Rich Yellow/Amber 3D gradient
+                    if (score <= 8) {
+                      colorClass = "bg-gradient-to-br from-[#FFD54F] via-[#FFA000] to-[#E65100] text-[#1E1100] border-[#E65100]/25";
+                      shadowClass = "shadow-[inset_-2px_-2px_5px_rgba(0,0,0,0.25),inset_2px_2px_5px_rgba(255,255,255,0.5),0_8px_20px_rgba(255,160,0,0.52)] border-[#FFA000]";
+                      FaceIcon = NeutralFace;
+                    }
+                    // Promoters (9-10): Rich Green 3D gradient
+                    else {
+                      colorClass = "bg-gradient-to-br from-[#81C784] via-[#388E3C] to-[#1B5E20] text-[#0A250D] border-[#1B5E20]/25";
+                      shadowClass = "shadow-[inset_-2px_-2px_5px_rgba(0,0,0,0.25),inset_2px_2px_5px_rgba(255,255,255,0.5),0_8px_20px_rgba(56,142,60,0.62)] border-[#388E3C]";
+                      FaceIcon = SmileFace;
+                    }
+
+                    return (
+                      <button
+                        key={score}
+                        type="button"
+                        onClick={() => {
+                          if (score === 9 || score === 10) {
+                            playCelebrationChime();
+                          }
+                          setRating(score);
+                          setSelectedReasons([]);
+                          setOtherReason("");
+                          setErrors((prev) => ({ ...prev, rating: "" }));
+                        }}
+                        onMouseDown={() => triggerHaptic("medium")}
+                        onTouchStart={() => triggerHaptic("medium")}
+                        className={`flex flex-col items-center w-8 sm:w-10 focus:outline-none transition-all duration-200 ${
+                          isSelected ? "scale-110 z-10" : "opacity-65 hover:opacity-90"
+                        }`}
+                      >
+                        {/* Icon Circle */}
+                        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center border transition-all ${colorClass} ${
+                          isSelected ? shadowClass + " border-2 scale-105" : defaultShadowClass + " border-transparent"
+                        }`}>
+                          {FaceIcon}
+                        </div>
+                        
+                        {/* Number Label */}
+                        <span className={`text-[10px] sm:text-xs mt-1.5 font-bold transition-all ${
+                          isSelected ? "text-gray-955 scale-110 font-extrabold" : "text-gray-600 font-semibold"
+                        }`}>
+                          {score}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               {rating !== null && (
@@ -703,10 +760,13 @@ function FeedbackFormContent() {
               {errors.rating && (
                 <p className="text-xs text-[#B64F45] font-semibold animate-scale-in">{errors.rating}</p>
               )}
-              
-              {/* Dynamic Checkbox Options */}
-              {rating !== null && (
-                <div className="text-left space-y-3.5 pt-5 max-w-md mx-auto animate-fade-slide-in">
+            </div>
+            
+            {/* Dynamic Checkbox Options & Progressive Disclosure Form */}
+            {rating !== null && (
+              <div className="animate-fade-slide-in divide-y divide-[#E6DED3]/40">
+                {/* Checklist options */}
+                <div className="px-4 sm:px-6 py-6 text-left space-y-3.5 max-w-md mx-auto">
                   <span className="block text-xs font-bold text-[#AE8448] uppercase tracking-wider mb-2.5">
                     {getQuestionLabel()}
                   </span>
@@ -757,122 +817,200 @@ function FeedbackFormContent() {
                     </div>
                   )}
                 </div>
-              )}
-            </div>
 
-            {/* Section 2: Comment Field */}
-            <div className="px-4 sm:px-6 py-5 border-b border-[#FAF9F7] space-y-2.5 bg-[#FAF9F6]/20">
-              <label className="block text-xs font-bold text-[#AE8448] uppercase tracking-wider">
-                {t.comment_label}
-              </label>
-              <textarea
-                value={experienceComment}
-                onChange={(e) => setExperienceComment(e.target.value)}
-                placeholder={t.comment_placeholder}
-                className="w-full min-h-[95px] p-3.5 border border-[#D9CFC1] rounded-xl text-base bg-[#FAF9F7] focus:outline-none focus:border-[#C8A568] transition-all text-gray-800 font-medium placeholder:text-gray-400"
-              />
-            </div>
-
-            {/* Section 3: Contact Yes/No & Optional Mobile input */}
-            {rating !== null && rating <= 6 && (
-              <div ref={contactRef} className="px-4 sm:px-6 py-5 border-b border-[#E6DED3]/60 bg-[#FAF9F6] space-y-4.5">
-              <label className="block text-xs font-bold text-[#AE8448] uppercase tracking-wider">
-                {t.contact_ask} <span className="text-[#B64F45]">*</span>
-              </label>
-
-              <div className="flex space-x-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setContactRequested(true);
-                    setErrors((prev) => ({ ...prev, contactRequested: "" }));
-                  }}
-                  onMouseDown={() => triggerHaptic("light")}
-                  onTouchStart={() => triggerHaptic("light")}
-                  className={`flex-1 min-h-[46px] px-4 border rounded-xl text-sm font-semibold transition-all duration-200 card-hover ${
-                    contactRequested === true
-                      ? "border-[#AE8448] bg-[#FDFBF7] text-gray-900 shadow-sm shadow-[#AE8448]/5"
-                      : "border-[#E6DED3] bg-[#FAF9F7]/40 text-gray-700 hover:border-[#C8A568] hover:bg-[#FAF6F0]"
-                  }`}
-                >
-                  {t.yes}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setContactRequested(false);
-                    setMobileNumber("");
-                    setErrors((prev) => ({ ...prev, contactRequested: "", mobileNumber: "" }));
-                  }}
-                  onMouseDown={() => triggerHaptic("light")}
-                  onTouchStart={() => triggerHaptic("light")}
-                  className={`flex-1 min-h-[46px] px-4 border rounded-xl text-sm font-semibold transition-all duration-200 card-hover ${
-                    contactRequested === false
-                      ? "border-[#AE8448] bg-[#FDFBF7] text-gray-900 shadow-sm shadow-[#AE8448]/5"
-                      : "border-[#E6DED3] bg-[#FAF9F7]/40 text-gray-700 hover:border-[#C8A568] hover:bg-[#FAF6F0]"
-                  }`}
-                >
-                  {t.no}
-                </button>
-              </div>
-              {errors.contactRequested && (
-                <p className="text-xs text-[#B64F45] font-semibold animate-scale-in">{errors.contactRequested}</p>
-              )}
-
-              {/* Conditional Mobile Number Input */}
-              {contactRequested === true && (
-                <div className="space-y-1.5 pt-3.5 border-t border-[#E6DED3]/50 animate-fade-slide-in">
-                  <label className="block text-xs font-bold text-gray-700">
-                    {t.mobile_label} <span className="text-[#B64F45]">*</span>
+                {/* Section 3: Contact Yes/No & Optional Mobile input */}
+                <div ref={contactRef} className="px-4 sm:px-6 py-6 bg-[#FAF9F6] space-y-4.5">
+                  <label className="block text-xs font-bold text-[#AE8448] uppercase tracking-wider text-center sm:text-left">
+                    {t.contact_ask} <span className="text-[#B64F45]">*</span>
                   </label>
-                  <input
-                    type="tel"
-                    inputMode="numeric"
-                    maxLength={10}
-                    value={mobileNumber}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, "").slice(0, 10);
-                      setMobileNumber(val);
-                      setErrors((prev) => ({ ...prev, mobileNumber: "" }));
-                    }}
-                    placeholder={t.mobile_placeholder}
-                    className={`w-full min-h-[44px] px-3.5 border rounded-xl text-base bg-white focus:outline-none transition-all ${
-                      errors.mobileNumber ? "border-[#B64F45] bg-[#FAF5F4]" : "border-[#D9CFC1] focus:border-[#421111]"
-                    }`}
-                  />
-                  {errors.mobileNumber && (
-                    <p className="text-xs text-[#B64F45] font-semibold animate-scale-in">{errors.mobileNumber}</p>
+
+                  <div className="flex space-x-3 max-w-md mx-auto">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setContactRequested(true);
+                        setErrors((prev) => ({ ...prev, contactRequested: "" }));
+                      }}
+                      onMouseDown={() => triggerHaptic("light")}
+                      onTouchStart={() => triggerHaptic("light")}
+                      className={`flex-1 min-h-[46px] px-4 border rounded-xl text-sm font-semibold transition-all duration-200 card-hover ${
+                        contactRequested === true
+                          ? "border-[#AE8448] bg-[#FDFBF7] text-gray-900 shadow-sm shadow-[#AE8448]/5"
+                          : "border-[#E6DED3] bg-[#FAF9F7]/40 text-gray-700 hover:border-[#C8A568] hover:bg-[#FAF6F0]"
+                      }`}
+                    >
+                      {t.yes}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setContactRequested(false);
+                        setMobileNumber("");
+                        setErrors((prev) => ({ ...prev, contactRequested: "", mobileNumber: "" }));
+                      }}
+                      onMouseDown={() => triggerHaptic("light")}
+                      onTouchStart={() => triggerHaptic("light")}
+                      className={`flex-1 min-h-[46px] px-4 border rounded-xl text-sm font-semibold transition-all duration-200 card-hover ${
+                        contactRequested === false
+                          ? "border-[#AE8448] bg-[#FDFBF7] text-gray-900 shadow-sm shadow-[#AE8448]/5"
+                          : "border-[#E6DED3] bg-[#FAF9F7]/40 text-gray-700 hover:border-[#C8A568] hover:bg-[#FAF6F0]"
+                      }`}
+                    >
+                      {t.no}
+                    </button>
+                  </div>
+                  {errors.contactRequested && (
+                    <p className="text-xs text-[#B64F45] font-semibold text-center sm:text-left animate-scale-in">{errors.contactRequested}</p>
                   )}
+
+                  {/* Conditional Mobile Number Input */}
+                  {contactRequested === true && (
+                    <div className="space-y-1.5 pt-3.5 border-t border-[#E6DED3]/50 animate-fade-slide-in max-w-md mx-auto">
+                      <label className="block text-xs font-bold text-gray-700">
+                        {t.mobile_label} <span className="text-[#B64F45]">*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        inputMode="numeric"
+                        maxLength={10}
+                        value={mobileNumber}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, "").slice(0, 10);
+                          setMobileNumber(val);
+                          setErrors((prev) => ({ ...prev, mobileNumber: "" }));
+                        }}
+                        placeholder={t.mobile_placeholder}
+                        className={`w-full min-h-[44px] px-3.5 border rounded-xl text-base bg-white focus:outline-none transition-all ${
+                          errors.mobileNumber ? "border-[#B64F45] bg-[#FAF5F4]" : "border-[#D9CFC1] focus:border-[#421111]"
+                        }`}
+                      />
+                      {errors.mobileNumber && (
+                        <p className="text-xs text-[#B64F45] font-semibold animate-scale-in">{errors.mobileNumber}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Submission button */}
+                <div className="px-4 sm:px-6 py-6 bg-white space-y-4 rounded-b-none sm:rounded-b-2xl max-w-md mx-auto">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    onMouseDown={() => triggerHaptic("heavy")}
+                    onTouchStart={() => triggerHaptic("heavy")}
+                    className="w-full min-h-[50px] bg-[#421111] hover:bg-[#300B0B] text-white hover:text-[#E7D2A5] border border-[#AE8448]/30 rounded-xl text-sm font-semibold tracking-wide uppercase transition-all duration-200 focus:outline-none flex items-center justify-center space-x-2 disabled:opacity-75 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(66,17,17,0.15)] active:scale-[0.99]"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <svg className="animate-spin h-4 w-4 text-[#C8A568]" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        <span>{t.submitting}</span>
+                      </>
+                    ) : (
+                      <span>{t.submit}</span>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+            </form>
+        {/* Step-by-Step Comment Request Popup Modal */}
+      {showCommentModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-sm bg-[#FAF8F5] rounded-2xl border border-[#E6DED3] shadow-2xl overflow-hidden animate-scale-in flex flex-col">
+            {/* Header branding band */}
+            <div className="bg-[#421111] px-5 py-4 text-center border-b border-[#AE8448]/20">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-[#C8A568]">
+                Pravesh Gold
+              </span>
+            </div>
+            
+            <div className="p-6">
+              {!wantsToComment ? (
+                // Step 1: Ask if they want to give a comment
+                <div className="text-center space-y-5">
+                  <h3 className="text-base font-bold text-gray-800 leading-snug">
+                    {t.comment_ask_title}
+                  </h3>
+                  <div className="flex space-x-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setWantsToComment(true)}
+                      className="flex-1 min-h-[46px] px-4 border border-[#AE8448] bg-[#FDFBF7] text-gray-900 font-bold rounded-xl text-sm transition-all shadow-sm active:scale-[0.97]"
+                    >
+                      {t.yes}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isSubmitting}
+                      onClick={async () => {
+                        await submitFeedback("");
+                      }}
+                      className="flex-1 min-h-[46px] px-4 border border-[#E6DED3] bg-[#FAF9F7]/40 text-gray-700 font-semibold rounded-xl text-sm transition-all hover:bg-gray-50 active:scale-[0.97] flex items-center justify-center"
+                    >
+                      {isSubmitting ? (
+                        <svg className="animate-spin h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                      ) : (
+                        t.no
+                      )}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                // Step 2: Show comment input box and final submit button
+                <div className="space-y-4 text-left">
+                  <label className="block text-xs font-bold text-[#AE8448] uppercase tracking-wider">
+                    {t.comment_label}
+                  </label>
+                  <textarea
+                    value={tempComment}
+                    onChange={(e) => setTempComment(e.target.value)}
+                    placeholder={t.comment_placeholder}
+                    className="w-full min-h-[105px] p-3 border border-[#D9CFC1] rounded-xl text-base bg-white focus:outline-none focus:border-[#C8A568] transition-all text-gray-800 font-medium placeholder:text-gray-400"
+                  />
+                  <div className="flex space-x-3 pt-2">
+                    <button
+                      type="button"
+                      disabled={isSubmitting}
+                      onClick={() => {
+                        setWantsToComment(false);
+                        setTempComment("");
+                      }}
+                      className="flex-1 min-h-[46px] px-4 border border-[#E6DED3] bg-white text-gray-600 font-semibold rounded-xl text-sm transition-all hover:bg-gray-50 active:scale-[0.97]"
+                    >
+                      Back
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isSubmitting}
+                      onClick={async () => {
+                        await submitFeedback(tempComment);
+                      }}
+                      className="flex-1 min-h-[46px] px-4 bg-[#421111] hover:bg-[#300B0B] text-white font-bold rounded-xl text-sm transition-all shadow-md active:scale-[0.97] flex items-center justify-center"
+                    >
+                      {isSubmitting ? (
+                        <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                      ) : (
+                        t.submit
+                      )}
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
-            )}
-
-            {/* Submission button */}
-            <div className="px-4 sm:px-6 py-5 bg-white space-y-4 rounded-b-none sm:rounded-b-2xl">
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                onMouseDown={() => triggerHaptic("heavy")}
-                onTouchStart={() => triggerHaptic("heavy")}
-                className="w-full min-h-[50px] bg-[#421111] hover:bg-[#300B0B] text-white hover:text-[#E7D2A5] border border-[#AE8448]/30 rounded-xl text-sm font-semibold tracking-wide uppercase transition-all duration-200 focus:outline-none flex items-center justify-center space-x-2 disabled:opacity-75 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(66,17,17,0.15)] active:scale-[0.99]"
-              >
-                {isSubmitting ? (
-                  <>
-                    <svg className="animate-spin h-4 w-4 text-[#C8A568]" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    <span>{t.submitting}</span>
-                  </>
-                ) : (
-                  <span>{t.submit}</span>
-                )}
-              </button>
-            </div>
-
-          </form>
-        </main>
+          </div>
+        </div>
+      )}
+      
+      </main>
       </div>
     </div>
   );
