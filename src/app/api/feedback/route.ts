@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { createFeedback, FeedbackData } from '@/lib/feedbackStorage/googleSheetsStorage';
 
 const feedbackValidationSchema = z.object({
-  rating: z.number().int().min(1).max(5),
+  rating: z.number().int().min(0).max(10),
   rating_label: z.string().min(1),
   selected_reasons: z.array(z.string()).optional().nullable(),
   other_reason: z.string().optional().nullable().or(z.literal("")),
@@ -16,6 +16,12 @@ const feedbackValidationSchema = z.object({
 export async function POST(request: Request) {
   try {
     const rawBody = await request.json();
+    
+    // For NPS scores 7-10 (Passives & Promoters), callback requests are disabled/hidden
+    if (rawBody && typeof rawBody.rating === 'number' && rawBody.rating >= 7) {
+      rawBody.contact_requested = false;
+      rawBody.mobile_number = '';
+    }
     
     // 1. Zod Validation
     const validationResult = feedbackValidationSchema.safeParse(rawBody);

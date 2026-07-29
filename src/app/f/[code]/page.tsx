@@ -9,7 +9,9 @@ const translations = {
   en: {
     subtitle: "Customer Feedback Form",
     lang_label: "Language",
-    rating_title: "How was your experience at our store?",
+    rating_title: "How likely are you to recommend Pravesh Gold to your family or friends?",
+    nps_min_label: "Not Likely",
+    nps_max_label: "Extremely Likely",
     what_went_wrong: "What did you not like?",
     what_to_improve: "What can we do better?",
     what_liked: "What did you like most?",
@@ -38,11 +40,17 @@ const translations = {
     retry: "Try Again",
     return_review: "Review Responses",
     labels: {
-      1: "Very Poor",
+      0: "Poor",
+      1: "Poor",
       2: "Poor",
-      3: "Average",
-      4: "Good",
-      5: "Excellent"
+      3: "Poor",
+      4: "Poor",
+      5: "Poor",
+      6: "Poor",
+      7: "Average",
+      8: "Average",
+      9: "Good",
+      10: "Good"
     },
     reasons: {
       staff_guidance: "Staff service or behavior",
@@ -67,121 +75,136 @@ const translations = {
   hi: {
     subtitle: "ग्राहक फीडबैक फॉर्म",
     lang_label: "भाषा",
-    rating_title: "शोरूम का आपका समग्र अनुभव कैसा रहा?",
-    what_went_wrong: "हमसे कहाँ कमी रह गई?",
-    what_to_improve: "हम किन क्षेत्रों में सुधार कर सकते हैं?",
-    what_liked: "आपको सबसे ज़्यादा क्या पसंद आया?",
-    other_label: "अन्य (कृपया स्पष्ट करें)",
-    other_placeholder: "विवरण दर्ज करें...",
-    comment_label: "हमें अपने अनुभव के बारे में अधिक बताएं (वैकल्पिक)",
-    comment_placeholder: "अपनी प्रतिक्रिया यहाँ लिखें...",
-    contact_ask: "यदि आप चाहते हैं कि हमारी टीम आपसे संपर्क करे, तो कृपया अपना मोबाइल नंबर साझा करें।",
+    rating_title: "आप अपने परिवार या दोस्तों को प्रवेश गोल्ड की सलाह (Recommend) देने के लिए कितने सहमत हैं?",
+    nps_min_label: "संभावना नहीं है",
+    nps_max_label: "बहुत अधिक संभावना है",
+    what_went_wrong: "आपको क्या पसंद नहीं आया?",
+    what_to_improve: "हम क्या बेहतर कर सकते हैं?",
+    what_liked: "आपको सबसे अच्छा क्या लगा?",
+    other_label: "कुछ और (बताएं)",
+    other_placeholder: "यहाँ लिखें...",
+    comment_label: "अगर आप कुछ और बताना चाहें (ऐच्छिक)",
+    comment_placeholder: "अपनी बात यहाँ लिखें...",
+    contact_ask: "अगर आप चाहते हैं कि हमारी टीम आपसे बात करे, तो अपना मोबाइल नंबर लिख दें।",
     yes: "हाँ",
     no: "नहीं",
     mobile_label: "मोबाइल नंबर",
-    mobile_placeholder: "10-अंकों का मोबाइल नंबर दर्ज करें",
-    mobile_error: "कृपया एक वैध 10-अंकों का मोबाइल नंबर दर्ज करें।",
-    submit: "फीडबैक जमा करें",
-    submitting: "जमा किया जा रहा है...",
-    success_title: "धन्यवाद!",
-    success_msg_low: "आपकी ईमानदार प्रतिक्रिया के लिए धन्यवाद। आज आपकी अपेक्षाओं पर खरा न उतरने के लिए हम वास्तव में क्षमाप्रार्थी हैं। हमारे स्टोर मैनेजर को सूचित कर दिया गया है और हम सुधार के लिए आवश्यक कदम उठा रहे हैं।",
-    success_msg_mid: "आपकी बहुमूल्य प्रतिक्रिया के लिए धन्यवाद। हम आपके सुझावों की सराहना करते हैं और आपकी अगली यात्रा पर शोरूम के अनुभव को बेहतर बनाने के लिए इनका उपयोग करेंगे।",
-    success_msg_high: "शानदार रेटिंग के लिए आपका धन्यवाद! हमें बेहद खुशी है कि आपका अनुभव हमारे साथ बेहतरीन रहा। हम जल्द ही आपका फिर से स्वागत करने के लिए उत्सुक हैं।",
-    ref_id: "संदर्भ आईडी",
-    required: "यह फ़ील्ड आवश्यक है।",
+    mobile_placeholder: "10 अंकों का मोबाइल नंबर डालें",
+    mobile_error: "कृपया सही 10 अंकों का मोबाइल नंबर डालें।",
+    submit: "फीडबैक भेजें",
+    submitting: "सबमिट हो रहा है...",
+    success_title: "थैंक यू!",
+    success_msg_low: "फीडबैक के लिए धन्यवाद। खराब अनुभव के लिए हम माफ़ी चाहते हैं। हम इसे बेहतर करने की पूरी कोशिश करेंगे।",
+    success_msg_mid: "फीडबैक के लिए धन्यवाद। अगली बार आपका अनुभव और बेहतर बनाने के लिए हम आपकी सलाह पर ध्यान देंगे।",
+    success_msg_high: "शानदार रेटिंग के लिए थैंक यू! आपको हमारे यहाँ आकर अच्छा लगा, यह जानकर बहुत ख़ुशी हुई। जल्द ही फिर मिलेंगे!",
+    ref_id: "रेफरेंस आईडी",
+    required: "यह भरना जरूरी है।",
     page_unavailable_title: "लिंक उपलब्ध नहीं है",
-    page_unavailable_msg: "यह फ़ीडबैक लिंक अब सक्रिय नहीं है। कृपया नया फ़ीडबैक लिंक प्राप्त करें।",
-    net_error_title: "जमा करने में त्रुटि",
-    net_error_msg: "गूगल शीट्स से कनेक्ट करते समय कोई समस्या आई। प्रतिक्रिया सुरक्षित है—कृपया पुनः प्रयास करें।",
-    retry: "पुनः प्रयास करें",
-    return_review: "प्रतिक्रिया की समीक्षा करें",
+    page_unavailable_msg: "यह लिंक अब एक्टिव नहीं है। कृपया नया लिंक लें।",
+    net_error_title: "सबमिट नहीं हो पाया",
+    net_error_msg: "कनेक्शन में दिक्कत आई। आपकी जानकारी सुरक्षित है—कृपया दोबारा कोशिश करें।",
+    retry: "दोबारा कोशिश करें",
+    return_review: "फीडबैक देखें",
     labels: {
-      1: "बहुत खराब",
-      2: "खराब",
-      3: "औसत",
-      4: "अच्छा",
-      5: "उत्कृष्ट"
+      0: "खराब (Poor)",
+      1: "खराब (Poor)",
+      2: "खराब (Poor)",
+      3: "खराब (Poor)",
+      4: "खराब (Poor)",
+      5: "खराब (Poor)",
+      6: "खराब (Poor)",
+      7: "ठीक-ठाक (Average)",
+      8: "ठीक-ठाक (Average)",
+      9: "बहुत बढ़िया (Good)",
+      10: "बहुत बढ़िया (Good)"
     },
     reasons: {
-      staff_guidance: "स्टाफ का ध्यान या मार्गदर्शन",
-      waiting_time: "प्रतीक्षा समय",
-      pricing_clarity: "कीमत या मेकिंग चार्ज की स्पष्टता",
-      availability: "डिज़ाइन, साइज़ या उत्पाद की उपलब्धता",
-      billing_exchange: "बिलिंग या पुराना सोना एक्सचेंज",
-      designs: "अधिक ज्वेलरी डिज़ाइन",
-      fast_service: "तेज़ सेवा",
-      guidance: "बेहतर स्टाफ मार्गदर्शन",
-      clear_pricing: "अधिक स्पष्ट मूल्य निर्धारण",
-      showroom_comfort: "शोरूम का आराम",
-      helpful_staff: "मददगार और धैर्यवान स्टाफ",
-      variety_designs: "ज्वेलरी की विविधता और डिज़ाइन",
-      transparent_pricing: "पारदर्शी मूल्य निर्धारण",
-      fast_billing: "तेज़ सेवा और बिलिंग",
-      showroom_exp: "आरामदायक शोरूम अनुभव",
-      overall_trust: "समग्र विश्वास और अनुभव",
+      staff_guidance: "स्टाफ की सर्विस या व्यवहार",
+      waiting_time: "इंतजार का समय (वेटिंग)",
+      pricing_clarity: "कीमत या मेकिंग चार्ज",
+      availability: "ज्वेलरी कलेक्शन या साइज",
+      billing_exchange: "बिलिंग या पुराना गोल्ड एक्सचेंज",
+      designs: "और नए ज्वेलरी डिजाइन",
+      fast_service: "फास्ट सर्विस",
+      guidance: "स्टाफ का अच्छा व्यवहार",
+      clear_pricing: "साफ-सुथरी कीमतें",
+      showroom_comfort: "स्टोर में बैठने की जगह",
+      helpful_staff: "मददगार और नम्र स्टाफ",
+      variety_designs: "सुंदर और नए डिजाइन",
+      transparent_pricing: "साफ और ईमानदार रेट",
+      fast_billing: "तेज सर्विस और बिलिंग",
+      showroom_exp: "स्टोर का बढ़िया माहौल",
+      overall_trust: "भरोसा और अच्छी सर्विस",
       other: "कुछ और"
     }
   },
   mr: {
-    subtitle: "ग्राहक फीडबैक फॉर्म",
+    subtitle: "कस्टमर फीडबॅक फॉर्म",
     lang_label: "भाषा",
-    rating_title: "शोरूमचा आपला समग्र अनुभव कसा होता?",
-    what_went_wrong: "आमच्याकडून कुठे उणीव भासली?",
-    what_to_improve: "आम्ही कोणत्या गोष्टींमध्ये सुधारणा करू शकतो?",
-    what_liked: "तुम्हाला सर्वात जास्त काय आवडले?",
-    other_label: "इतर (कृपया स्पष्ट करा)",
-    other_placeholder: "तपशील प्रविष्ट करा...",
-    comment_label: "तुमच्या अनुभवाबद्दल आम्हाला अधिक सांगा (पर्यायी)",
-    comment_placeholder: "आपली प्रतिक्रिया येथे लिहा...",
-    contact_ask: "आमच्या टीमने तुमच्याशी संपर्क साधावा असे वाटत असल्यास, कृपया तुमचा मोबाईल नंबर शेअर करा.",
-    yes: "होय",
+    rating_title: "तुम्ही तुमच्या कुटुंबियांना किंवा मित्रांना प्रवेश गोल्डची शिफारस करण्याची शक्यता किती आहे?",
+    nps_min_label: "शक्यता नाही",
+    nps_max_label: "खूप शक्यता आहे",
+    what_went_wrong: "तुम्हाला काय आवडलं नाही?",
+    what_to_improve: "आम्ही काय सुधारू शकतो?",
+    what_liked: "तुम्हाला सर्वात जास्त काय आवडलं?",
+    other_label: "इतर काही (सांगा)",
+    other_placeholder: "इथे लिहा...",
+    comment_label: "अजून काही सांगायचे असल्यास (ऐच्छिक)",
+    comment_placeholder: "तुमची प्रतिक्रिया इथे लिहा...",
+    contact_ask: "आमच्या टीमने तुमच्याशी बोलावे असे वाटत असल्यास, आपला मोबाईल नंबर नक्की लिहा.",
+    yes: "हो",
     no: "नाही",
     mobile_label: "मोबाईल नंबर",
     mobile_placeholder: "10-अंकी मोबाईल नंबर टाका",
-    mobile_error: "कृपया एक वैध 10-अंकी मोबाईल नंबर प्रविष्ट करा.",
-    submit: "फीडबॅक सबमिट करा",
+    mobile_error: "कृपया योग्य 10-अंकी मोबाईल नंबर टाका.",
+    submit: "फीडबॅक पाठवा",
     submitting: "सबमिट होत आहे...",
-    success_title: "धन्यवाद!",
-    success_msg_low: "तुमच्या प्रामाणिक अभिप्रायाबद्दल धन्यवाद. आज तुमच्या अपेक्षा पूर्ण न करू शकल्याबद्दल आम्हाला खेद आहे. आमच्या स्टोअर मॅनेजरना कळवले गेले आहे आणि आम्ही त्वरित सुधारणा करत आहोत.",
-    success_msg_mid: "तुमच्या मौल्यवान अभिप्रायाबद्दल धन्यवाद. आम्ही तुमच्या सूचनांचे स्वागत करतो आणि तुमच्या पुढच्या भेटीमध्ये सुधारणा करण्यासाठी याचा वापर करू.",
-    success_msg_high: "उत्कृष्ट रेटिंगसाठी आपले मनापासून धन्यवाद! तुमचा आमच्यासोबतचा अनुभव खूप चांगला राहिल्याबद्दल आम्हाला आनंद आहे. पुन्हा आपले स्वागत करण्यासाठी आम्ही उत्सुक आहोत.",
-    ref_id: "संदर्भ आयडी",
-    required: "ही माहिती आवश्यक आहे.",
+    success_title: "थँक्यू!",
+    success_msg_low: "फीडबॅकबद्दल मनापासून धन्यवाद. वाईट अनुभवाबद्दल आम्ही माफी मागतो. आम्ही यात नक्की सुधारणा करू.",
+    success_msg_mid: "फीडबॅकबद्दल धन्यवाद. पुढच्या वेळी तुमचा अनुभव अजून चांगला करण्यासाठी आम्ही नक्की प्रयत्न करू.",
+    success_msg_high: "छान रेटिंग दिल्याबद्दल खूप खूप थँक्यू! तुम्हाला भेट देऊन आनंद झाला. लवकरच पुन्हा भेटूया!",
+    ref_id: "रेफरन्स आयडी",
+    required: "ही माहिती भरणे गरजेचे आहे.",
     page_unavailable_title: "लिंक उपलब्ध नाही",
-    page_unavailable_msg: "ही फीडबॅक लिंक आता सक्रिय नाही. कृपया शोरूममधून नवीन फीडबॅक लिंक प्राप्त करावी.",
-    net_error_title: "सबमिशन त्रुटी",
-    net_error_msg: "गुगल शीट्स कनेक्ट करताना काही अडचण आली. आपली माहिती सुरक्षित आहे—कृपया पुन्हा प्रयत्न करा.",
+    page_unavailable_msg: "ही लिंक आता ॲक्टिव्ह नाही. कृपया नवीन लिंक घ्या.",
+    net_error_title: "सबमिट झाले नाही",
+    net_error_msg: "कनेक्शनमध्ये अडचण आली. आपली माहिती सुरक्षित आहे—कृपया पुन्हा प्रयत्न करा.",
     retry: "पुन्हा प्रयत्न करा",
-    return_review: "प्रतिक्रिया तपासा",
+    return_review: "फीडबॅक तपासा",
     labels: {
-      1: "खूप वाईट",
-      2: "वाईट",
-      3: "मध्यम",
-      4: "चांगले",
-      5: "उत्कृष्ट"
+      0: "वाईट (Poor)",
+      1: "वाईट (Poor)",
+      2: "वाईट (Poor)",
+      3: "वाईट (Poor)",
+      4: "वाईट (Poor)",
+      5: "वाईट (Poor)",
+      6: "वाईट (Poor)",
+      7: "मध्यम (Average)",
+      8: "मध्यम (Average)",
+      9: "उत्कृष्ट (Good)",
+      10: "उत्कृष्ट (Good)"
     },
     reasons: {
-      staff_guidance: "स्टाफचे लक्ष किंवा मार्गदर्शन",
-      waiting_time: "प्रतीक्षा वेळ",
-      pricing_clarity: "किंमत किंवा मेकिंग चार्जची स्पष्टता",
-      availability: "डिझाइन, साईझ किंवा दागिन्यांची उपलब्धता",
+      staff_guidance: "स्टाफची सर्व्हिस किंवा वागणूक",
+      waiting_time: "वेळ (वेटिंग)",
+      pricing_clarity: "किंमत किंवा मेकिंग चार्जेस",
+      availability: "दागिन्यांचे कलेक्शन किंवा साईझ",
       billing_exchange: "बिलिंग किंवा जुने सोने एक्सचेंज",
-      designs: "अधिक ज्वेलरी डिझाईन्स",
-      fast_service: "वेगवान सेवा",
-      guidance: "उत्कृष्ट स्टाफ मार्गदर्शन",
-      clear_pricing: "अधिक स्पष्ट मूल्य निर्धारण",
-      showroom_comfort: "शोरूममधील सोयी-सुविधा",
-      helpful_staff: "मददगार आणि संयमी स्टाफ",
-      variety_designs: "ज्वेलरीची विविधता आणि डिझाईन्स",
-      transparent_pricing: "पारदर्शी मूल्य निर्धारण",
-      fast_billing: "वेगवान सेवा आणि billing",
-      showroom_exp: "शोरूममधील आरामदायक अनुभव",
-      overall_trust: "समग्र विश्वास आणि अनुभव",
+      designs: "अजून नवीन दागिन्यांचे डिझाईन्स",
+      fast_service: "फास्ट सर्व्हिस",
+      guidance: "स्टाफची चांगली सर्व्हिस",
+      clear_pricing: "स्पष्ट किंमत",
+      showroom_comfort: "स्टोअरमध्ये बसण्याची सोय",
+      helpful_staff: "मदत करणारे नम्र स्टाफ",
+      variety_designs: "सुंदर आणि नवीन डिझाईन्स",
+      transparent_pricing: "पारदर्शक आणि प्रामाणिक रेट",
+      fast_billing: "जलद सर्व्हिस आणि बिलिंग",
+      showroom_exp: "स्टोअरचे छान वातावरण",
+      overall_trust: "विश्वास आणि उत्तम सर्व्हिस",
       other: "इतर काही"
     }
   }
 };
-
 type TranslationType = typeof translations.en;
 
 const playCelebrationChime = () => {
@@ -233,7 +256,7 @@ function FeedbackFormContent() {
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
 
   // Form Fields
-  const [rating, setRating] = useState<number>(0);
+  const [rating, setRating] = useState<number | null>(null);
   const [selectedReasons, setSelectedReasons] = useState<string[]>([]);
   const [otherReason, setOtherReason] = useState("");
   const [experienceComment, setExperienceComment] = useState("");
@@ -248,9 +271,10 @@ function FeedbackFormContent() {
   const [refId, setRefId] = useState("");
 
   // Animation triggers
-  const [clickedStar, setClickedStar] = useState<number | null>(null);
+  
 
   const q1Ref = useRef<HTMLDivElement>(null);
+  const npsRef = useRef<HTMLDivElement>(null);
   const contactRef = useRef<HTMLDivElement>(null);
 
   const t = translations[lang];
@@ -271,29 +295,15 @@ function FeedbackFormContent() {
   }
 
   // Get Star Styling dynamically
-  const getStarColor = (starVal: number, activeRating: number) => {
-    if (starVal > activeRating) return "text-gray-300 hover:text-gray-400"; // unselected
-    
-    // Fill all stars up to selected rating using that rating's color
-    switch (activeRating) {
-      case 1: return "text-[#D32F2F] active-star-red"; // Premium Red
-      case 2: return "text-[#D32F2F] active-star-red"; // Premium Red
-      case 3: return "text-[#FBC02D] active-star-amber"; // Vibrant Amber Gold
-      case 4: return "text-[#388E3C] active-star-green"; // Emerald Green
-      case 5: return "text-[#2E7D32] active-star-green"; // Deep Emerald Green
-      default: return "text-gray-300";
-    }
-  };
-
   // Select dynamic question checklists by rating sentiment
   const getQuestionLabel = () => {
-    if (rating === 1 || rating === 2) return t.what_went_wrong;
-    if (rating === 3) return t.what_to_improve;
+    if (rating !== null && rating <= 6) return t.what_went_wrong;
+    if (rating === 7 || rating === 8) return t.what_to_improve;
     return t.what_liked;
   };
 
   const getOptionsList = () => {
-    if (rating === 1 || rating === 2) {
+    if (rating !== null && rating <= 6) {
       return [
         { key: "staff_guidance", label: t.reasons.staff_guidance },
         { key: "waiting_time", label: t.reasons.waiting_time },
@@ -302,7 +312,7 @@ function FeedbackFormContent() {
         { key: "billing_exchange", label: t.reasons.billing_exchange },
         { key: "other", label: t.reasons.other }
       ];
-    } else if (rating === 3) {
+    } else if (rating === 7 || rating === 8) {
       return [
         { key: "designs", label: t.reasons.designs },
         { key: "fast_service", label: t.reasons.fast_service },
@@ -311,7 +321,7 @@ function FeedbackFormContent() {
         { key: "showroom_comfort", label: t.reasons.showroom_comfort },
         { key: "other", label: t.reasons.other }
       ];
-    } else if (rating === 4 || rating === 5) {
+    } else if (rating === 9 || rating === 10) {
       return [
         { key: "helpful_staff", label: t.reasons.helpful_staff },
         { key: "variety_designs", label: t.reasons.variety_designs },
@@ -335,19 +345,21 @@ function FeedbackFormContent() {
   const validateForm = (): boolean => {
     const newErrors: { [key: string]: string } = {};
 
-    if (rating === 0) {
+    if (rating === null) {
       newErrors.rating = t.required;
     }
 
-    if (contactRequested === null) {
-      newErrors.contactRequested = t.required;
-    } else if (contactRequested === true) {
-      const cleanMobile = mobileNumber.trim();
-      const mobileRegex = /^[6-9]\d{9}$/;
-      if (!cleanMobile) {
-        newErrors.mobileNumber = t.required;
-      } else if (!mobileRegex.test(cleanMobile)) {
-        newErrors.mobileNumber = t.mobile_error;
+    if (rating !== null && rating <= 6) {
+      if (contactRequested === null) {
+        newErrors.contactRequested = t.required;
+      } else if (contactRequested === true) {
+        const cleanMobile = mobileNumber.trim();
+        const mobileRegex = /^[6-9]\d{9}$/;
+        if (!cleanMobile) {
+          newErrors.mobileNumber = t.required;
+        } else if (!mobileRegex.test(cleanMobile)) {
+          newErrors.mobileNumber = t.mobile_error;
+        }
       }
     }
 
@@ -382,12 +394,12 @@ function FeedbackFormContent() {
 
     const payload = {
       rating,
-      rating_label: t.labels[rating as keyof typeof t.labels] || "",
+      rating_label: rating !== null ? t.labels[rating as keyof typeof t.labels] || "" : "",
       selected_reasons: formattedReasons,
       other_reason: selectedReasons.includes("other") ? otherReason.trim() : "",
       experience_comment: experienceComment.trim(),
-      contact_requested: !!contactRequested,
-      mobile_number: contactRequested ? mobileNumber.trim() : "",
+      contact_requested: rating !== null && rating <= 6 ? !!contactRequested : false,
+      mobile_number: rating !== null && rating <= 6 && contactRequested ? mobileNumber.trim() : "",
       language: lang
     };
 
@@ -427,7 +439,7 @@ function FeedbackFormContent() {
   }
 
   if (isSuccess) {
-    return <SuccessView t={t} rating={rating} />;
+    return <SuccessView t={t} rating={rating!} />;
   }
 
   return (
@@ -565,49 +577,108 @@ function FeedbackFormContent() {
               </h2>
             </div>
 
-            {/* Section 1: Star Rating Bar */}
-            <div ref={q1Ref} className="p-6 border-b border-[#E6DED3]/60 text-center space-y-4">
-              <label className="block text-sm font-bold text-gray-800">
+            {/* Section 1: NPS Rating Bar */}
+            <div ref={q1Ref} className="px-3 sm:px-6 py-6 border-b border-[#E6DED3]/60 text-center space-y-4">
+              <label className="block text-sm font-bold text-gray-800 leading-snug">
                 {t.rating_title} <span className="text-[#B64F45]">*</span>
               </label>
 
-              <div className="flex justify-center space-x-2.5">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    type="button"
-                    onClick={() => {
-                      if (star === 4 || star === 5) {
-                        playCelebrationChime();
-                      }
-                      setRating(star);
-                      setClickedStar(star);
-                      setSelectedReasons([]);
-                      setOtherReason("");
-                      setErrors((prev) => ({ ...prev, rating: "" }));
-                      setTimeout(() => setClickedStar(null), 350);
-                    }}
-                    onMouseDown={() => triggerHaptic("medium")}
-                    onTouchStart={() => triggerHaptic("medium")}
-                    className={`focus:outline-none transition-transform duration-100 active:scale-90 ${clickedStar === star ? "star-bounce" : ""}`}
-                  >
-                    <svg
-                      className={`w-12 h-12 transition-all duration-200 transform hover:scale-110 ${getStarColor(star, rating)}`}
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
+              {/* Responsive NPS grid/flex container - strictly non-scrollable and fluid */}
+              <div className="flex flex-row justify-between items-center w-full gap-0.5 min-[360px]:gap-1 min-[400px]:gap-1.5 sm:gap-2.5 max-w-md mx-auto py-3">
+                {Array.from({ length: 11 }).map((_, score) => {
+                  const isSelected = rating === score;
+                  let colorClass = "";
+                  let shadowClass = "";
+                  let FaceIcon = null;
+
+                  const defaultShadowClass = "shadow-[inset_-1.5px_-1.5px_3.5px_rgba(0,0,0,0.18),inset_1.5px_1.5px_3.5px_rgba(255,255,255,0.4),0_3px_8px_rgba(0,0,0,0.08)]";
+
+                  // Detractors (0-6): Deep Orange/Red 3D gradient
+                  if (score <= 6) {
+                    colorClass = "bg-gradient-to-br from-[#FF8F6B] via-[#E64A19] to-[#C62828] text-[#1E0800] border-[#B71C1C]/25";
+                    shadowClass = "shadow-[inset_-2px_-2px_5px_rgba(0,0,0,0.25),inset_2px_2px_5px_rgba(255,255,255,0.5),0_8px_20px_rgba(230,74,25,0.52)] border-[#E64A19]";
+                    FaceIcon = (
+                      <svg viewBox="0 0 24 24" className="w-4 h-4 sm:w-5.5 sm:h-5.5 drop-shadow-[0_1px_0.5px_rgba(255,255,255,0.35)]" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                        <circle cx="8.5" cy="9.5" r="1.4" fill="currentColor" stroke="none" />
+                        <circle cx="15.5" cy="9.5" r="1.4" fill="currentColor" stroke="none" />
+                        <path d="M7.5 16 Q12 12.5 16.5 16" />
+                      </svg>
+                    );
+                  }
+                  // Passives (7-8): Rich Yellow/Amber 3D gradient
+                  else if (score <= 8) {
+                    colorClass = "bg-gradient-to-br from-[#FFD54F] via-[#FFA000] to-[#E65100] text-[#1E1100] border-[#E65100]/25";
+                    shadowClass = "shadow-[inset_-2px_-2px_5px_rgba(0,0,0,0.25),inset_2px_2px_5px_rgba(255,255,255,0.5),0_8px_20px_rgba(255,160,0,0.52)] border-[#FFA000]";
+                    FaceIcon = (
+                      <svg viewBox="0 0 24 24" className="w-4 h-4 sm:w-5.5 sm:h-5.5 drop-shadow-[0_1px_0.5px_rgba(255,255,255,0.35)]" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                        <circle cx="8.5" cy="9.5" r="1.4" fill="currentColor" stroke="none" />
+                        <circle cx="15.5" cy="9.5" r="1.4" fill="currentColor" stroke="none" />
+                        <line x1="7.5" y1="15" x2="16.5" y2="15" />
+                      </svg>
+                    );
+                  }
+                  // Promoters (9-10): Rich Green 3D gradient
+                  else {
+                    colorClass = "bg-gradient-to-br from-[#81C784] via-[#388E3C] to-[#1B5E20] text-[#0A250D] border-[#1B5E20]/25";
+                    shadowClass = "shadow-[inset_-2px_-2px_5px_rgba(0,0,0,0.25),inset_2px_2px_5px_rgba(255,255,255,0.5),0_8px_20px_rgba(56,142,60,0.62)] border-[#388E3C]";
+                    FaceIcon = (
+                      <svg viewBox="0 0 24 24" className="w-4 h-4 sm:w-5.5 sm:h-5.5 drop-shadow-[0_1px_0.5px_rgba(255,255,255,0.35)]" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                        <circle cx="8.5" cy="9" r="1.4" fill="currentColor" stroke="none" />
+                        <circle cx="15.5" cy="9" r="1.4" fill="currentColor" stroke="none" />
+                        <path d="M7.5 13.5 Q12 18 16.5 13.5" />
+                      </svg>
+                    );
+                  }
+
+                  return (
+                    <button
+                      key={score}
+                      type="button"
+                      onClick={() => {
+                        if (score === 9 || score === 10) {
+                          playCelebrationChime();
+                        }
+                        setRating(score);
+                        setSelectedReasons([]);
+                        setOtherReason("");
+                        setErrors((prev) => ({ ...prev, rating: "" }));
+                      }}
+                      onMouseDown={() => triggerHaptic("medium")}
+                      onTouchStart={() => triggerHaptic("medium")}
+                      className={`flex flex-col items-center flex-1 min-w-0 focus:outline-none transition-all duration-200 ${
+                        isSelected ? "scale-110 z-10" : "opacity-65 hover:opacity-90"
+                      }`}
                     >
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  </button>
-                ))}
+                      {/* Icon Circle */}
+                      <div className={`w-6.5 h-6.5 min-[360px]:w-7.5 min-[360px]:h-7.5 min-[400px]:w-8.5 min-[400px]:h-8.5 sm:w-10 sm:h-10 rounded-full flex items-center justify-center border transition-all ${colorClass} ${
+                        isSelected ? shadowClass + " border-2 scale-105" : defaultShadowClass + " border-transparent"
+                      }`}>
+                        {FaceIcon}
+                      </div>
+                      
+                      {/* Number Label */}
+                      <span className={`text-[10px] sm:text-xs mt-1.5 font-bold transition-all ${
+                        isSelected ? "text-gray-955 scale-110 font-extrabold" : "text-gray-600 font-semibold"
+                      }`}>
+                        {score}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
 
-              {rating > 0 && (
-                <div className="flex justify-center animate-scale-in">
+              {/* Min/Max helper labels */}
+              <div className="flex justify-between text-[10px] sm:text-xs font-semibold text-gray-400 max-w-md mx-auto px-2">
+                <span>{t.nps_min_label} (0)</span>
+                <span>{t.nps_max_label} (10)</span>
+              </div>
+
+              {rating !== null && (
+                <div className="flex justify-center animate-scale-in pt-1">
                   <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider border ${
-                    rating === 1 || rating === 2
+                    rating <= 6
                       ? "bg-red-50 text-[#B64F45] border-red-100/60"
-                      : rating === 3
+                      : rating === 7 || rating === 8
                       ? "bg-amber-50 text-[#C8A568] border-amber-100/60"
                       : "bg-[#F2F7F4] text-[#3E7154] border-[#E2ECE7]"
                   }`}>
@@ -619,9 +690,9 @@ function FeedbackFormContent() {
               {errors.rating && (
                 <p className="text-xs text-[#B64F45] font-semibold animate-scale-in">{errors.rating}</p>
               )}
-
+              
               {/* Dynamic Checkbox Options */}
-              {rating > 0 && (
+              {rating !== null && (
                 <div className="text-left space-y-3.5 pt-5 max-w-md mx-auto animate-fade-slide-in">
                   <span className="block text-xs font-bold text-[#AE8448] uppercase tracking-wider mb-2.5">
                     {getQuestionLabel()}
@@ -690,7 +761,8 @@ function FeedbackFormContent() {
             </div>
 
             {/* Section 3: Contact Yes/No & Optional Mobile input */}
-            <div ref={contactRef} className="p-6 border-b border-[#E6DED3]/60 bg-[#FAF9F6] space-y-4.5">
+            {rating !== null && rating <= 6 && (
+              <div ref={contactRef} className="p-6 border-b border-[#E6DED3]/60 bg-[#FAF9F6] space-y-4.5">
               <label className="block text-xs font-bold text-[#AE8448] uppercase tracking-wider">
                 {t.contact_ask} <span className="text-[#B64F45]">*</span>
               </label>
@@ -761,6 +833,7 @@ function FeedbackFormContent() {
                 </div>
               )}
             </div>
+            )}
 
             {/* Submission button */}
             <div className="p-6 bg-white space-y-4 rounded-b-2xl">
@@ -809,10 +882,10 @@ export default function FeedbackPage() {
 
 // Success Template with celebration confetti particles and auto-drawing checkmarks
 function SuccessView({ t, rating }: { t: TranslationType; rating: number }) {
-  const showConfetti = rating === 4 || rating === 5;
+  const showConfetti = rating === 9 || rating === 10;
 
   useEffect(() => {
-    if (rating === 4 || rating === 5) {
+    if (rating === 9 || rating === 10) {
       playCelebrationChime();
     }
   }, [rating]);
@@ -828,8 +901,8 @@ function SuccessView({ t, rating }: { t: TranslationType; rating: number }) {
   }));
 
   const getSuccessMessage = () => {
-    if (rating === 1 || rating === 2) return t.success_msg_low;
-    if (rating === 3) return t.success_msg_mid;
+    if (rating !== null && rating <= 6) return t.success_msg_low;
+    if (rating === 7 || rating === 8) return t.success_msg_mid;
     return t.success_msg_high;
   };
 
