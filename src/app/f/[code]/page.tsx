@@ -443,7 +443,7 @@ function FeedbackFormContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F7F4EF] text-[#171717] font-sans flex flex-col items-center pt-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] px-3 sm:px-4 animate-fade-in relative">
+    <div className="min-h-screen bg-[#F7F4EF] text-[#171717] font-sans flex flex-col items-center pt-0 sm:pt-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] px-0 sm:px-4 animate-fade-in relative">
       {/* Dynamic Embedded Animation Keyframes */}
       <style>{`
         * {
@@ -510,10 +510,10 @@ function FeedbackFormContent() {
         }
       `}</style>
 
-      <div className="w-full max-w-[550px] bg-white border border-[#E6DED3] rounded-2xl shadow-[0_12px_40px_rgba(66,17,17,0.04)] flex flex-col justify-between animate-slide-up relative">
+      <div className="w-full max-w-[550px] bg-white sm:border sm:border-[#E6DED3]/60 rounded-none sm:rounded-2xl shadow-none sm:shadow-[0_12px_40px_rgba(66,17,17,0.04)] flex flex-col justify-between animate-slide-up relative">
         
         {/* Top Header */}
-        <header className="bg-[#421111] px-4 sm:px-6 py-4 border-b border-[#AE8448]/30 relative flex justify-center items-center rounded-t-2xl z-20">
+        <header className="bg-[#421111] px-4 sm:px-6 py-4 border-b border-[#AE8448]/30 relative flex justify-center items-center rounded-t-none sm:rounded-t-2xl z-20">
           <Image
             src="/PGLOGO.png"
             alt="Pravesh Gold"
@@ -748,7 +748,7 @@ function FeedbackFormContent() {
             </div>
 
             {/* Section 2: Comment Field */}
-            <div className="p-6 border-b border-[#FAF9F7] space-y-2.5 bg-[#FAF9F6]/20">
+            <div className="px-4 sm:px-6 py-5 border-b border-[#FAF9F7] space-y-2.5 bg-[#FAF9F6]/20">
               <label className="block text-xs font-bold text-[#AE8448] uppercase tracking-wider">
                 {t.comment_label}
               </label>
@@ -762,7 +762,7 @@ function FeedbackFormContent() {
 
             {/* Section 3: Contact Yes/No & Optional Mobile input */}
             {rating !== null && rating <= 6 && (
-              <div ref={contactRef} className="p-6 border-b border-[#E6DED3]/60 bg-[#FAF9F6] space-y-4.5">
+              <div ref={contactRef} className="px-4 sm:px-6 py-5 border-b border-[#E6DED3]/60 bg-[#FAF9F6] space-y-4.5">
               <label className="block text-xs font-bold text-[#AE8448] uppercase tracking-wider">
                 {t.contact_ask} <span className="text-[#B64F45]">*</span>
               </label>
@@ -836,7 +836,7 @@ function FeedbackFormContent() {
             )}
 
             {/* Submission button */}
-            <div className="p-6 bg-white space-y-4 rounded-b-2xl">
+            <div className="px-4 sm:px-6 py-5 bg-white space-y-4 rounded-b-none sm:rounded-b-2xl">
               <button
                 type="submit"
                 disabled={isSubmitting}
