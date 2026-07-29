@@ -303,11 +303,8 @@ function FeedbackFormContent() {
       newErrors.contactRequested = t.required;
     } else if (contactRequested === true) {
       const cleanMobile = mobileNumber.trim();
-      const mobileRegex = /^[6-9]\d{9}$/;
       if (!cleanMobile) {
         newErrors.mobileNumber = t.required;
-      } else if (!mobileRegex.test(cleanMobile)) {
-        newErrors.mobileNumber = t.mobile_error;
       }
     }
 
