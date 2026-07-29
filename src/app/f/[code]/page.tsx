@@ -754,6 +754,8 @@ export default function FeedbackPage() {
 
 // Success Template with celebration confetti particles and auto-drawing checkmarks
 function SuccessView({ t, rating }: { t: TranslationType; rating: number }) {
+  const showConfetti = rating === 4 || rating === 5;
+
   // Generate random confetti particle styles
   const particles = Array.from({ length: 25 }).map((_, i) => ({
     id: i,
@@ -806,23 +808,25 @@ function SuccessView({ t, rating }: { t: TranslationType; rating: number }) {
       `}</style>
 
       {/* Background celebration floating confetti */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {particles.map((p) => (
-          <div
-            key={p.id}
-            className="absolute opacity-0"
-            style={{
-              left: p.left,
-              bottom: '10%',
-              width: p.size,
-              height: p.size,
-              backgroundColor: p.color,
-              borderRadius: Math.random() > 0.55 ? '50%' : '3px',
-              animation: `floatUp ${p.duration} ease-out ${p.delay} infinite`
-            }}
-          />
-        ))}
-      </div>
+      {showConfetti && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {particles.map((p) => (
+            <div
+              key={p.id}
+              className="absolute opacity-0"
+              style={{
+                left: p.left,
+                bottom: '10%',
+                width: p.size,
+                height: p.size,
+                backgroundColor: p.color,
+                borderRadius: Math.random() > 0.55 ? '50%' : '3px',
+                animation: `floatUp ${p.duration} ease-out ${p.delay} infinite`
+              }}
+            />
+          ))}
+        </div>
+      )}
 
       <div className="w-full max-w-[460px] bg-white border border-[#E6DED3] rounded-2xl p-6 sm:p-8 text-center space-y-5 shadow-xl relative z-10 animate-slide-up">
         
