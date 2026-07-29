@@ -416,7 +416,7 @@ function FeedbackFormContent() {
       selected_reasons: formattedReasons,
       other_reason: selectedReasons.includes("other") ? otherReason.trim() : "",
       experience_comment: "", // Comments removed as requested
-      contact_requested: !!contactRequested,
+      contact_requested: (rating === 9 || rating === 10) ? false : !!contactRequested,
       mobile_number: "",
       language: lang
     };
@@ -465,9 +465,14 @@ function FeedbackFormContent() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
-    setShowContactModal(true);
-    setContactRequested(null);
-    setModalErrors({});
+    if (rating === 9 || rating === 10) {
+      setContactRequested(false);
+      submitFeedback();
+    } else {
+      setShowContactModal(true);
+      setContactRequested(null);
+      setModalErrors({});
+    }
   };
 
     if (networkErrorOccurred) {
