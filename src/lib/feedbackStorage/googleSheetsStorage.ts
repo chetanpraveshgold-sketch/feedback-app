@@ -31,7 +31,7 @@ export async function createFeedback(data: FeedbackData): Promise<{ success: boo
     (data.selected_reasons || []).join(', '),    // 3: selected_reasons (comma-separated readable text)
     data.other_reason || '',                     // 4: other_reason
     data.experience_comment || '',               // 5: experience_comment
-    data.contact_requested ? 'TRUE' : 'FALSE',   // 6: contact_requested
+    data.contact_requested ? 'YES' : 'NO',   // 6: contact_requested
     data.mobile_number || '',                    // 7: mobile_number
     data.language,                               // 8: language
     data.created_at                              // 9: created_at
