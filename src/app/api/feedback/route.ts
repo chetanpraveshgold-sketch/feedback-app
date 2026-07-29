@@ -27,17 +27,7 @@ export async function POST(request: Request) {
     
     const body = validationResult.data;
     
-    // 2. Strict callback validation: Mobile required and formatted if contact requested
-    if (body.contact_requested) {
-      const cleanMobile = (body.mobile_number || '').trim();
-      const mobileRegex = /^[6-9]\d{9}$/;
-      if (!cleanMobile) {
-        return NextResponse.json({ error: 'Mobile number is required to request a callback.' }, { status: 400 });
-      }
-      if (!mobileRegex.test(cleanMobile)) {
-        return NextResponse.json({ error: 'A valid 10-digit mobile number is required.' }, { status: 400 });
-      }
-    }
+
 
     const formattedDate = "'" + new Intl.DateTimeFormat('en-GB', {
       timeZone: 'Asia/Kolkata',

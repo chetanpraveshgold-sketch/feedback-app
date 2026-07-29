@@ -417,7 +417,7 @@ function FeedbackFormContent() {
       other_reason: selectedReasons.includes("other") ? otherReason.trim() : "",
       experience_comment: "", // Comments removed as requested
       contact_requested: !!contactRequested,
-      mobile_number: contactRequested ? mobileNumber.trim() : "",
+      mobile_number: "",
       language: lang
     };
 
@@ -448,18 +448,10 @@ function FeedbackFormContent() {
   };
 
   const handleModalSubmit = async () => {
-    const errs: { contactRequested?: string; mobileNumber?: string } = {};
+    const errs: { contactRequested?: string } = {};
 
     if (contactRequested === null) {
       errs.contactRequested = t.required;
-    } else if (contactRequested === true) {
-      const cleanMobile = mobileNumber.trim();
-      const mobileRegex = /^[6-9]\d{9}$/;
-      if (!cleanMobile) {
-        errs.mobileNumber = t.required;
-      } else if (!mobileRegex.test(cleanMobile)) {
-        errs.mobileNumber = t.mobile_error;
-      }
     }
 
     setModalErrors(errs);
@@ -475,7 +467,6 @@ function FeedbackFormContent() {
     if (!validateForm()) return;
     setShowContactModal(true);
     setContactRequested(null);
-    setMobileNumber("");
     setModalErrors({});
   };
 
@@ -879,7 +870,6 @@ function FeedbackFormContent() {
                     type="button"
                     onClick={() => {
                       setContactRequested(false);
-                      setMobileNumber("");
                       setModalErrors({});
                     }}
                     onMouseDown={() => triggerHaptic("light")}
@@ -897,33 +887,6 @@ function FeedbackFormContent() {
                   <p className="text-xs text-[#B64F45] font-semibold animate-scale-in">{modalErrors.contactRequested}</p>
                 )}
               </div>
-
-              {/* Conditional Mobile input inside modal */}
-              {contactRequested === true && (
-                <div className="space-y-1.5 pt-3.5 border-t border-[#E6DED3]/50 animate-fade-slide-in text-left">
-                  <label className="block text-xs font-bold text-gray-700">
-                    {t.mobile_label} <span className="text-[#B64F45]">*</span>
-                  </label>
-                  <input
-                    type="tel"
-                    inputMode="numeric"
-                    maxLength={10}
-                    value={mobileNumber}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, "").slice(0, 10);
-                      setMobileNumber(val);
-                      setModalErrors((prev) => ({ ...prev, mobileNumber: "" }));
-                    }}
-                    placeholder={t.mobile_placeholder}
-                    className={`w-full min-h-[42px] px-3 border rounded-xl text-base bg-white focus:outline-none transition-all ${
-                      modalErrors.mobileNumber ? "border-[#B64F45] bg-[#FAF5F4]" : "border-[#D9CFC1] focus:border-[#421111]"
-                    }`}
-                  />
-                  {modalErrors.mobileNumber && (
-                    <p className="text-xs text-[#B64F45] font-semibold animate-scale-in">{modalErrors.mobileNumber}</p>
-                  )}
-                </div>
-              )}
 
               {/* Final submission actions */}
               <div className="flex space-x-3 pt-3.5 border-t border-[#E6DED3]/30">
