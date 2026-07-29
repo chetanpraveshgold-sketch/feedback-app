@@ -214,31 +214,62 @@ const playCelebrationChime = () => {
     if (!AudioCtx) return;
     const ctx = new AudioCtx();
     
-    const now = ctx.currentTime;
-    // Luxury ascending chime frequencies (C5, E5, G5, C6)
-    const notes = [523.25, 659.25, 783.99, 1046.50];
-    
-    notes.forEach((freq, index) => {
+    const playNote = (freq: number, startTime: number, duration: number, volume: number) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(freq, now + index * 0.07);
+      // Warm, sweet chime tone (triangle wave)
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(freq, startTime);
       
-      gain.gain.setValueAtTime(0.001, now + index * 0.07);
-      gain.gain.exponentialRampToValueAtTime(0.12, now + index * 0.07 + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + index * 0.07 + 0.45);
+      gain.gain.setValueAtTime(0, startTime);
+      gain.gain.linearRampToValueAtTime(volume, startTime + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
       
       osc.connect(gain);
       gain.connect(ctx.destination);
       
-      osc.start(now + index * 0.07);
-      osc.stop(now + index * 0.07 + 0.5);
-    });
+      osc.start(startTime);
+      osc.stop(startTime + duration + 0.05);
+    };
+
+    const now = ctx.currentTime;
+    // Premium ascending major-third double chime:
+    // First ring (C6 + E6) for crystal body
+    playNote(1046.50, now, 0.45, 0.09);
+    playNote(1318.51, now, 0.45, 0.05);
+    
+    // Second ring (G6 + C7) for bright resonance 0.08 seconds later
+    playNote(1567.98, now + 0.08, 0.55, 0.09);
+    playNote(2093.00, now + 0.08, 0.55, 0.05);
   } catch {
     // Ignore audio context errors gracefully
   }
 };
+
+const FrownFace = (
+  <svg viewBox="0 0 24 24" className="w-4 h-4 sm:w-5.5 sm:h-5.5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+    <circle cx="8.5" cy="9.5" r="1.4" fill="currentColor" stroke="none" />
+    <circle cx="15.5" cy="9.5" r="1.4" fill="currentColor" stroke="none" />
+    <path d="M7.5 16 Q12 12.5 16.5 16" />
+  </svg>
+);
+
+const NeutralFace = (
+  <svg viewBox="0 0 24 24" className="w-4 h-4 sm:w-5.5 sm:h-5.5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+    <circle cx="8.5" cy="9.5" r="1.4" fill="currentColor" stroke="none" />
+    <circle cx="15.5" cy="9.5" r="1.4" fill="currentColor" stroke="none" />
+    <line x1="7.5" y1="15" x2="16.5" y2="15" />
+  </svg>
+);
+
+const SmileFace = (
+  <svg viewBox="0 0 24 24" className="w-4 h-4 sm:w-5.5 sm:h-5.5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+    <circle cx="8.5" cy="9" r="1.4" fill="currentColor" stroke="none" />
+    <circle cx="15.5" cy="9" r="1.4" fill="currentColor" stroke="none" />
+    <path d="M7.5 13.5 Q12 18 16.5 13.5" />
+  </svg>
+);
 
 function FeedbackFormContent() {
   const params = useParams();
@@ -578,7 +609,7 @@ function FeedbackFormContent() {
             </div>
 
             {/* Section 1: NPS Rating Bar */}
-            <div ref={q1Ref} className="px-3 sm:px-6 py-6 border-b border-[#E6DED3]/60 text-center space-y-4">
+            <div ref={q1Ref} className="px-4 sm:px-6 py-6 border-b border-[#E6DED3]/60 text-center space-y-4">
               <label className="block text-sm font-bold text-gray-800 leading-snug">
                 {t.rating_title} <span className="text-[#B64F45]">*</span>
               </label>
@@ -597,37 +628,19 @@ function FeedbackFormContent() {
                   if (score <= 6) {
                     colorClass = "bg-gradient-to-br from-[#FF8F6B] via-[#E64A19] to-[#C62828] text-[#1E0800] border-[#B71C1C]/25";
                     shadowClass = "shadow-[inset_-2px_-2px_5px_rgba(0,0,0,0.25),inset_2px_2px_5px_rgba(255,255,255,0.5),0_8px_20px_rgba(230,74,25,0.52)] border-[#E64A19]";
-                    FaceIcon = (
-                      <svg viewBox="0 0 24 24" className="w-4 h-4 sm:w-5.5 sm:h-5.5 drop-shadow-[0_1px_0.5px_rgba(255,255,255,0.35)]" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                        <circle cx="8.5" cy="9.5" r="1.4" fill="currentColor" stroke="none" />
-                        <circle cx="15.5" cy="9.5" r="1.4" fill="currentColor" stroke="none" />
-                        <path d="M7.5 16 Q12 12.5 16.5 16" />
-                      </svg>
-                    );
+                    FaceIcon = FrownFace;
                   }
                   // Passives (7-8): Rich Yellow/Amber 3D gradient
                   else if (score <= 8) {
                     colorClass = "bg-gradient-to-br from-[#FFD54F] via-[#FFA000] to-[#E65100] text-[#1E1100] border-[#E65100]/25";
                     shadowClass = "shadow-[inset_-2px_-2px_5px_rgba(0,0,0,0.25),inset_2px_2px_5px_rgba(255,255,255,0.5),0_8px_20px_rgba(255,160,0,0.52)] border-[#FFA000]";
-                    FaceIcon = (
-                      <svg viewBox="0 0 24 24" className="w-4 h-4 sm:w-5.5 sm:h-5.5 drop-shadow-[0_1px_0.5px_rgba(255,255,255,0.35)]" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                        <circle cx="8.5" cy="9.5" r="1.4" fill="currentColor" stroke="none" />
-                        <circle cx="15.5" cy="9.5" r="1.4" fill="currentColor" stroke="none" />
-                        <line x1="7.5" y1="15" x2="16.5" y2="15" />
-                      </svg>
-                    );
+                    FaceIcon = NeutralFace;
                   }
                   // Promoters (9-10): Rich Green 3D gradient
                   else {
                     colorClass = "bg-gradient-to-br from-[#81C784] via-[#388E3C] to-[#1B5E20] text-[#0A250D] border-[#1B5E20]/25";
                     shadowClass = "shadow-[inset_-2px_-2px_5px_rgba(0,0,0,0.25),inset_2px_2px_5px_rgba(255,255,255,0.5),0_8px_20px_rgba(56,142,60,0.62)] border-[#388E3C]";
-                    FaceIcon = (
-                      <svg viewBox="0 0 24 24" className="w-4 h-4 sm:w-5.5 sm:h-5.5 drop-shadow-[0_1px_0.5px_rgba(255,255,255,0.35)]" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                        <circle cx="8.5" cy="9" r="1.4" fill="currentColor" stroke="none" />
-                        <circle cx="15.5" cy="9" r="1.4" fill="currentColor" stroke="none" />
-                        <path d="M7.5 13.5 Q12 18 16.5 13.5" />
-                      </svg>
-                    );
+                    FaceIcon = SmileFace;
                   }
 
                   return (
