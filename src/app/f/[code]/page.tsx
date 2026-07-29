@@ -296,10 +296,9 @@ function FeedbackFormContent() {
   const [experienceComment, setExperienceComment] = useState("");
   const [contactRequested, setContactRequested] = useState<boolean | null>(null);
   const [mobileNumber, setMobileNumber] = useState("");
-  // Modal comment states
-  const [showCommentModal, setShowCommentModal] = useState(false);
-  const [wantsToComment, setWantsToComment] = useState(false);
-  const [tempComment, setTempComment] = useState("");
+  // Modal callback states
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [modalErrors, setModalErrors] = useState<{ contactRequested?: string; mobileNumber?: string }>({});
 
   // System States
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -387,33 +386,12 @@ function FeedbackFormContent() {
       newErrors.rating = t.required;
     }
 
-    if (rating !== null) {
-      if (contactRequested === null) {
-        newErrors.contactRequested = t.required;
-      } else if (contactRequested === true) {
-        const cleanMobile = mobileNumber.trim();
-        const mobileRegex = /^[6-9]\d{9}$/;
-        if (!cleanMobile) {
-          newErrors.mobileNumber = t.required;
-        } else if (!mobileRegex.test(cleanMobile)) {
-          newErrors.mobileNumber = t.mobile_error;
-        }
-      }
-    }
-
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length > 0) {
       setTimeout(() => {
-        const errKeys = Object.keys(newErrors);
-        let targetRef = q1Ref;
-        if (errKeys.includes("rating")) targetRef = q1Ref;
-        else if (errKeys.includes("contactRequested") || errKeys.includes("mobileNumber")) {
-          if (contactRef && contactRef.current) targetRef = contactRef;
-        }
-
-        if (targetRef && targetRef.current) {
-          targetRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+        if (q1Ref && q1Ref.current) {
+          q1Ref.current.scrollIntoView({ behavior: "smooth", block: "center" });
         }
       }, 100);
       return false;
@@ -422,14 +400,9 @@ function FeedbackFormContent() {
     return true;
   };
 
-  const submitFeedback = async (commentOverride?: string) => {
+  const submitFeedback = async () => {
     setIsSubmitting(true);
     setNetworkErrorOccurred(false);
-
-    const finalComment = typeof commentOverride === "string" ? commentOverride : experienceComment;
-    if (typeof commentOverride === "string") {
-      setExperienceComment(commentOverride);
-    }
 
     // Convert keys to active translations strings for storage
     const formattedReasons = selectedReasons.map((key) => {
@@ -442,7 +415,7 @@ function FeedbackFormContent() {
       rating_label: rating !== null ? t.labels[rating as keyof typeof t.labels] || "" : "",
       selected_reasons: formattedReasons,
       other_reason: selectedReasons.includes("other") ? otherReason.trim() : "",
-      experience_comment: finalComment.trim(),
+      experience_comment: "", // Comments removed as requested
       contact_requested: !!contactRequested,
       mobile_number: contactRequested ? mobileNumber.trim() : "",
       language: lang
@@ -461,7 +434,7 @@ function FeedbackFormContent() {
       if (response.ok && res.status === "success") {
         setRefId(res.referenceId);
         setIsSuccess(true);
-        setShowCommentModal(false);
+        setShowContactModal(false);
       } else {
         setNetworkErrorOccurred(true);
       }
@@ -474,12 +447,36 @@ function FeedbackFormContent() {
     }
   };
 
+  const handleModalSubmit = async () => {
+    const errs: { contactRequested?: string; mobileNumber?: string } = {};
+
+    if (contactRequested === null) {
+      errs.contactRequested = t.required;
+    } else if (contactRequested === true) {
+      const cleanMobile = mobileNumber.trim();
+      const mobileRegex = /^[6-9]\d{9}$/;
+      if (!cleanMobile) {
+        errs.mobileNumber = t.required;
+      } else if (!mobileRegex.test(cleanMobile)) {
+        errs.mobileNumber = t.mobile_error;
+      }
+    }
+
+    setModalErrors(errs);
+    if (Object.keys(errs).length > 0) {
+      return;
+    }
+
+    await submitFeedback();
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
-    setShowCommentModal(true);
-    setWantsToComment(false);
-    setTempComment("");
+    setShowContactModal(true);
+    setContactRequested(null);
+    setMobileNumber("");
+    setModalErrors({});
   };
 
     if (networkErrorOccurred) {
@@ -818,79 +815,6 @@ function FeedbackFormContent() {
                   )}
                 </div>
 
-                {/* Section 3: Contact Yes/No & Optional Mobile input */}
-                <div ref={contactRef} className="px-4 sm:px-6 py-6 bg-[#FAF9F6] space-y-4.5">
-                  <label className="block text-xs font-bold text-[#AE8448] uppercase tracking-wider text-center sm:text-left">
-                    {t.contact_ask} <span className="text-[#B64F45]">*</span>
-                  </label>
-
-                  <div className="flex space-x-3 max-w-md mx-auto">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setContactRequested(true);
-                        setErrors((prev) => ({ ...prev, contactRequested: "" }));
-                      }}
-                      onMouseDown={() => triggerHaptic("light")}
-                      onTouchStart={() => triggerHaptic("light")}
-                      className={`flex-1 min-h-[46px] px-4 border rounded-xl text-sm font-semibold transition-all duration-200 card-hover ${
-                        contactRequested === true
-                          ? "border-[#AE8448] bg-[#FDFBF7] text-gray-900 shadow-sm shadow-[#AE8448]/5"
-                          : "border-[#E6DED3] bg-[#FAF9F7]/40 text-gray-700 hover:border-[#C8A568] hover:bg-[#FAF6F0]"
-                      }`}
-                    >
-                      {t.yes}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setContactRequested(false);
-                        setMobileNumber("");
-                        setErrors((prev) => ({ ...prev, contactRequested: "", mobileNumber: "" }));
-                      }}
-                      onMouseDown={() => triggerHaptic("light")}
-                      onTouchStart={() => triggerHaptic("light")}
-                      className={`flex-1 min-h-[46px] px-4 border rounded-xl text-sm font-semibold transition-all duration-200 card-hover ${
-                        contactRequested === false
-                          ? "border-[#AE8448] bg-[#FDFBF7] text-gray-900 shadow-sm shadow-[#AE8448]/5"
-                          : "border-[#E6DED3] bg-[#FAF9F7]/40 text-gray-700 hover:border-[#C8A568] hover:bg-[#FAF6F0]"
-                      }`}
-                    >
-                      {t.no}
-                    </button>
-                  </div>
-                  {errors.contactRequested && (
-                    <p className="text-xs text-[#B64F45] font-semibold text-center sm:text-left animate-scale-in">{errors.contactRequested}</p>
-                  )}
-
-                  {/* Conditional Mobile Number Input */}
-                  {contactRequested === true && (
-                    <div className="space-y-1.5 pt-3.5 border-t border-[#E6DED3]/50 animate-fade-slide-in max-w-md mx-auto">
-                      <label className="block text-xs font-bold text-gray-700">
-                        {t.mobile_label} <span className="text-[#B64F45]">*</span>
-                      </label>
-                      <input
-                        type="tel"
-                        inputMode="numeric"
-                        maxLength={10}
-                        value={mobileNumber}
-                        onChange={(e) => {
-                          const val = e.target.value.replace(/\D/g, "").slice(0, 10);
-                          setMobileNumber(val);
-                          setErrors((prev) => ({ ...prev, mobileNumber: "" }));
-                        }}
-                        placeholder={t.mobile_placeholder}
-                        className={`w-full min-h-[44px] px-3.5 border rounded-xl text-base bg-white focus:outline-none transition-all ${
-                          errors.mobileNumber ? "border-[#B64F45] bg-[#FAF5F4]" : "border-[#D9CFC1] focus:border-[#421111]"
-                        }`}
-                      />
-                      {errors.mobileNumber && (
-                        <p className="text-xs text-[#B64F45] font-semibold animate-scale-in">{errors.mobileNumber}</p>
-                      )}
-                    </div>
-                  )}
-                </div>
-
                 {/* Submission button */}
                 <div className="px-4 sm:px-6 py-6 bg-white space-y-4 rounded-b-none sm:rounded-b-2xl max-w-md mx-auto">
                   <button
@@ -916,8 +840,8 @@ function FeedbackFormContent() {
               </div>
             )}
             </form>
-        {/* Step-by-Step Comment Request Popup Modal */}
-      {showCommentModal && (
+        {/* Step-by-Step Callback Request Popup Modal */}
+      {showContactModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
           <div className="w-full max-w-sm bg-[#FAF8F5] rounded-2xl border border-[#E6DED3] shadow-2xl overflow-hidden animate-scale-in flex flex-col">
             {/* Header branding band */}
@@ -927,84 +851,106 @@ function FeedbackFormContent() {
               </span>
             </div>
             
-            <div className="p-6">
-              {!wantsToComment ? (
-                // Step 1: Ask if they want to give a comment
-                <div className="text-center space-y-5">
-                  <h3 className="text-base font-bold text-gray-800 leading-snug">
-                    {t.comment_ask_title}
-                  </h3>
-                  <div className="flex space-x-3 pt-2">
-                    <button
-                      type="button"
-                      onClick={() => setWantsToComment(true)}
-                      className="flex-1 min-h-[46px] px-4 border border-[#AE8448] bg-[#FDFBF7] text-gray-900 font-bold rounded-xl text-sm transition-all shadow-sm active:scale-[0.97]"
-                    >
-                      {t.yes}
-                    </button>
-                    <button
-                      type="button"
-                      disabled={isSubmitting}
-                      onClick={async () => {
-                        await submitFeedback("");
-                      }}
-                      className="flex-1 min-h-[46px] px-4 border border-[#E6DED3] bg-[#FAF9F7]/40 text-gray-700 font-semibold rounded-xl text-sm transition-all hover:bg-gray-50 active:scale-[0.97] flex items-center justify-center"
-                    >
-                      {isSubmitting ? (
-                        <svg className="animate-spin h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                        </svg>
-                      ) : (
-                        t.no
-                      )}
-                    </button>
-                  </div>
+            <div className="p-6 space-y-4">
+              {/* Question: Would you like us to contact you? */}
+              <div className="text-center space-y-4">
+                <h3 className="text-sm font-bold text-gray-800 leading-snug">
+                  {t.contact_ask} <span className="text-[#B64F45]">*</span>
+                </h3>
+                
+                <div className="flex space-x-3 max-w-[280px] mx-auto">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setContactRequested(true);
+                      setModalErrors((prev) => ({ ...prev, contactRequested: "" }));
+                    }}
+                    onMouseDown={() => triggerHaptic("light")}
+                    onTouchStart={() => triggerHaptic("light")}
+                    className={`flex-1 min-h-[44px] border rounded-xl text-sm font-bold transition-all duration-200 ${
+                      contactRequested === true
+                        ? "border-[#AE8448] bg-[#FDFBF7] text-gray-900 shadow-sm shadow-[#AE8448]/5"
+                        : "border-[#E6DED3] bg-white text-gray-700 hover:border-[#C8A568] hover:bg-[#FAF6F0]"
+                    }`}
+                  >
+                    {t.yes}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setContactRequested(false);
+                      setMobileNumber("");
+                      setModalErrors({});
+                    }}
+                    onMouseDown={() => triggerHaptic("light")}
+                    onTouchStart={() => triggerHaptic("light")}
+                    className={`flex-1 min-h-[44px] border rounded-xl text-sm font-bold transition-all duration-200 ${
+                      contactRequested === false
+                        ? "border-[#AE8448] bg-[#FDFBF7] text-gray-900 shadow-sm shadow-[#AE8448]/5"
+                        : "border-[#E6DED3] bg-white text-gray-700 hover:border-[#C8A568] hover:bg-[#FAF6F0]"
+                    }`}
+                  >
+                    {t.no}
+                  </button>
                 </div>
-              ) : (
-                // Step 2: Show comment input box and final submit button
-                <div className="space-y-4 text-left">
-                  <label className="block text-xs font-bold text-[#AE8448] uppercase tracking-wider">
-                    {t.comment_label}
+                {modalErrors.contactRequested && (
+                  <p className="text-xs text-[#B64F45] font-semibold animate-scale-in">{modalErrors.contactRequested}</p>
+                )}
+              </div>
+
+              {/* Conditional Mobile input inside modal */}
+              {contactRequested === true && (
+                <div className="space-y-1.5 pt-3.5 border-t border-[#E6DED3]/50 animate-fade-slide-in text-left">
+                  <label className="block text-xs font-bold text-gray-700">
+                    {t.mobile_label} <span className="text-[#B64F45]">*</span>
                   </label>
-                  <textarea
-                    value={tempComment}
-                    onChange={(e) => setTempComment(e.target.value)}
-                    placeholder={t.comment_placeholder}
-                    className="w-full min-h-[105px] p-3 border border-[#D9CFC1] rounded-xl text-base bg-white focus:outline-none focus:border-[#C8A568] transition-all text-gray-800 font-medium placeholder:text-gray-400"
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    maxLength={10}
+                    value={mobileNumber}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, "").slice(0, 10);
+                      setMobileNumber(val);
+                      setModalErrors((prev) => ({ ...prev, mobileNumber: "" }));
+                    }}
+                    placeholder={t.mobile_placeholder}
+                    className={`w-full min-h-[42px] px-3 border rounded-xl text-base bg-white focus:outline-none transition-all ${
+                      modalErrors.mobileNumber ? "border-[#B64F45] bg-[#FAF5F4]" : "border-[#D9CFC1] focus:border-[#421111]"
+                    }`}
                   />
-                  <div className="flex space-x-3 pt-2">
-                    <button
-                      type="button"
-                      disabled={isSubmitting}
-                      onClick={() => {
-                        setWantsToComment(false);
-                        setTempComment("");
-                      }}
-                      className="flex-1 min-h-[46px] px-4 border border-[#E6DED3] bg-white text-gray-600 font-semibold rounded-xl text-sm transition-all hover:bg-gray-50 active:scale-[0.97]"
-                    >
-                      Back
-                    </button>
-                    <button
-                      type="button"
-                      disabled={isSubmitting}
-                      onClick={async () => {
-                        await submitFeedback(tempComment);
-                      }}
-                      className="flex-1 min-h-[46px] px-4 bg-[#421111] hover:bg-[#300B0B] text-white font-bold rounded-xl text-sm transition-all shadow-md active:scale-[0.97] flex items-center justify-center"
-                    >
-                      {isSubmitting ? (
-                        <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                        </svg>
-                      ) : (
-                        t.submit
-                      )}
-                    </button>
-                  </div>
+                  {modalErrors.mobileNumber && (
+                    <p className="text-xs text-[#B64F45] font-semibold animate-scale-in">{modalErrors.mobileNumber}</p>
+                  )}
                 </div>
               )}
+
+              {/* Final submission actions */}
+              <div className="flex space-x-3 pt-3.5 border-t border-[#E6DED3]/30">
+                <button
+                  type="button"
+                  disabled={isSubmitting}
+                  onClick={() => setShowContactModal(false)}
+                  className="flex-1 min-h-[44px] border border-[#E6DED3] bg-white text-gray-600 font-semibold rounded-xl text-sm transition-all hover:bg-gray-50 active:scale-[0.97]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={isSubmitting}
+                  onClick={handleModalSubmit}
+                  className="flex-1 min-h-[44px] bg-[#421111] hover:bg-[#300B0B] text-white font-bold rounded-xl text-sm transition-all shadow-md active:scale-[0.97] flex items-center justify-center"
+                >
+                  {isSubmitting ? (
+                    <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                  ) : (
+                    t.submit
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1015,6 +961,8 @@ function FeedbackFormContent() {
     </div>
   );
 }
+
+
 
 export default function FeedbackPage() {
   return (
