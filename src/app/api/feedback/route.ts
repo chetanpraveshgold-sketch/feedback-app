@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { z } from 'zod';
 import { createFeedback, FeedbackData } from '@/lib/feedbackStorage/googleSheetsStorage';
 
@@ -17,8 +17,6 @@ export async function POST(request: Request) {
   try {
     const rawBody = await request.json();
     
-
-    
     // 1. Zod Validation
     const validationResult = feedbackValidationSchema.safeParse(rawBody);
     if (!validationResult.success) {
@@ -27,8 +25,6 @@ export async function POST(request: Request) {
     
     const body = validationResult.data;
     
-
-
     const formattedDate = "'" + new Intl.DateTimeFormat('en-GB', {
       timeZone: 'Asia/Kolkata',
       day: '2-digit',
@@ -39,7 +35,7 @@ export async function POST(request: Request) {
       hour12: true
     }).format(new Date());
 
-    // 3. Populate minimal feedback object
+    // Populate feedback object
     const feedbackData: FeedbackData = {
       rating: body.rating,
       rating_label: body.rating_label,
@@ -52,9 +48,20 @@ export async function POST(request: Request) {
       created_at: formattedDate
     };
     
-    const result = await createFeedback(feedbackData);
+    // Generate feedback ID immediately
+    const feedbackId = feedbackData.id || `PG-FB-2026-${Math.floor(100000 + Math.random() * 900000)}`;
+    feedbackData.id = feedbackId;
+    const refIdShort = `PG-FB-${feedbackId.slice(-6)}`;
+
+    // Perform Google Sheets append in background via after() so API returns immediately (<150ms)
+    after(async () => {
+      try {
+        await createFeedback(feedbackData);
+      } catch (err) {
+        console.error('Background Google Sheets append error:', err);
+      }
+    });
     
-    const refIdShort = `PG-FB-${result.id.slice(-6)}`;
     return NextResponse.json({ status: 'success', referenceId: refIdShort });
     
   } catch (error) {

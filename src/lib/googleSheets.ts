@@ -48,15 +48,29 @@ const writeMockDatabase = (db: Record<string, any[][]>) => {
   }
 };
 
+let cachedAuth: any = null;
+let cachedSheets: any = null;
+
 const getGoogleAuth = () => {
   if (!clientEmail || !privateKey) {
     throw new Error('Google Sheets Service Account credentials are missing.');
   }
-  return new google.auth.JWT({
-    email: clientEmail,
-    key: privateKey,
-    scopes: ['https://www.googleapis.com/auth/spreadsheets']
-  });
+  if (!cachedAuth) {
+    cachedAuth = new google.auth.JWT({
+      email: clientEmail,
+      key: privateKey,
+      scopes: ['https://www.googleapis.com/auth/spreadsheets']
+    });
+  }
+  return cachedAuth;
+};
+
+const getSheetsClient = () => {
+  if (!cachedSheets) {
+    const auth = getGoogleAuth();
+    cachedSheets = google.sheets({ version: 'v4', auth });
+  }
+  return cachedSheets;
 };
 
 // Append a single row of values to a tab in the spreadsheet
@@ -70,8 +84,7 @@ export const appendToGoogleSheet = async (sheetName: string, rowValues: any[]) =
     return;
   }
 
-  const auth = getGoogleAuth();
-  const sheets = google.sheets({ version: 'v4', auth });
+  const sheets = getSheetsClient();
   
   await sheets.spreadsheets.values.append({
     spreadsheetId,
@@ -91,8 +104,7 @@ export const getFromGoogleSheet = async (sheetName: string, range: string = 'A:Z
     return db[sheetName] || [];
   }
 
-  const auth = getGoogleAuth();
-  const sheets = google.sheets({ version: 'v4', auth });
+  const sheets = getSheetsClient();
   
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId,
